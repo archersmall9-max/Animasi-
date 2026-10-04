@@ -1,0 +1,167 @@
+name: Inbox fetch
+
+# Source handover for an environment that cannot reach the host a file lives
+# on. A GitHub runner downloads the URL and commits the result under inbox/
+# so it can be pulled with git.
+#
+# Scope, same as the rest of this project: material you own, created, or are
+# licensed to use. Nothing here bypasses authentication or DRM — a private or
+# sign-in-only link simply fails with a clear message.
+#
+# The committed file is TEMPORARY. It is removed as soon as it has been
+# pulled; see docs/COMPLIANCE.md.
+
+on:
+  push:
+    paths:
+      - "inbox/fetch.url"
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "URL of a source you own or are licensed to use"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: inbox-fetch-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install fetchers
+        run: |
+          python -m pip install --upgrade pip --quiet
+          pip install --quiet gdown yt-dlp
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -version | head -1
+
+      - name: Resolve URL
+        id: resolve
+        run: |
+          set -euo pipefail
+          if [ -n "${{ github.event.inputs.url }}" ]; then
+            URL="${{ github.event.inputs.url }}"
+          else
+            URL="$(grep -vE '^\s*(#|$)' inbox/fetch.url | head -1 | tr -d '\r')"
+          fi
+          if [ -z "$URL" ]; then
+            echo "::error::No URL supplied."; exit 1
+          fi
+          echo "Resolved URL host: $(echo "$URL" | sed -E 's#^https?://([^/]+).*#\1#')"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Download
+        id: download
+        run: |
+          set -euo pipefail
+          URL='${{ steps.resolve.outputs.url }}'
+          mkdir -p .fetch
+          cd .fetch
+
+          case "$URL" in
+            *drive.google.com*|*docs.google.com*)
+              echo "Google Drive detected — using gdown"
+              gdown --fuzzy --no-cookies -O source.bin "$URL" || {
+                echo "::error::gdown failed. The most common cause is link sharing: open the file in Drive, Share, General access -> 'Anyone with the link'."
+                exit 1
+              }
+              ;;
+            *youtube.com*|*youtu.be*|*tiktok.com*|*instagram.com*|*facebook.com*|*vimeo.com*|*x.com*|*twitter.com*)
+              echo "Platform URL detected — using yt-dlp"
+              yt-dlp --no-playlist --no-warnings --newline \
+                     -f 'bv*[height<=2160]+ba/b' --merge-output-format mp4 \
+                     -o source.%\(ext\)s "$URL"
+              mv source.* source.bin 2>/dev/null || true
+              ;;
+            *)
+              echo "Generic URL — using curl"
+              curl -fsSL --retry 3 --max-time 900 -o source.bin "$URL"
+              ;;
+          esac
+
+          if [ ! -s source.bin ]; then
+            echo "::error::Nothing was downloaded."; exit 1
+          fi
+
+          SIZE=$(stat -c%s source.bin)
+          echo "Downloaded $SIZE bytes"
+          file source.bin
+
+          # Reject HTML (login walls, quota pages, virus-scan interstitials)
+          if head -c 512 source.bin | grep -qiE '<!doctype html|<html'; then
+            echo "::error::The server returned a web page, not a file. The link is probably private or requires sign-in."
+            head -c 400 source.bin; exit 1
+          fi
+
+          if ! ffprobe -v error -show_entries stream=codec_type -of csv=p=0 source.bin | grep -q video; then
+            echo "::error::The downloaded file contains no video stream."
+            ffprobe -hide_banner source.bin 2>&1 | head -20; exit 1
+          fi
+
+          EXT=mp4
+          case "$(file -b --mime-type source.bin)" in
+            video/quicktime) EXT=mov ;;
+            video/x-matroska) EXT=mkv ;;
+            video/webm) EXT=webm ;;
+          esac
+          mv source.bin "source.$EXT"
+          echo "ext=$EXT" >> "$GITHUB_OUTPUT"
+          echo "size=$SIZE" >> "$GITHUB_OUTPUT"
+          sha256sum "source.$EXT" | tee checksum.txt
+
+          echo "### Source probe" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          ffprobe -hide_banner "source.$EXT" 2>&1 | grep -E 'Duration|Stream' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stage into inbox (splitting anything over 90 MB)
+        run: |
+          set -euo pipefail
+          EXT='${{ steps.download.outputs.ext }}'
+          SIZE='${{ steps.download.outputs.size }}'
+          rm -f inbox/source.* inbox/checksum.txt inbox/part_*
+          mv .fetch/checksum.txt inbox/checksum.txt
+          if [ "$SIZE" -gt 94371840 ]; then
+            echo "Large file — splitting into 90 MB parts"
+            split -b 90m -d -a 3 ".fetch/source.$EXT" "inbox/part_"
+            echo "$EXT" > inbox/part_extension.txt
+            ls -la inbox/part_*
+          else
+            mv ".fetch/source.$EXT" "inbox/source.$EXT"
+            ls -la "inbox/source.$EXT"
+          fi
+
+      - name: Commit to the branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f inbox/
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."; exit 0
+          fi
+          git commit -m "chore(inbox): temporary source handover [skip ci]"
+          git push origin "HEAD:${{ github.ref_name }}"
+          echo "Pushed to ${{ github.ref_name }}"
+
+      - name: Reminder
+        if: always()
+        run: |
+          echo "The file under inbox/ is temporary and must be deleted once pulled." >> "$GITHUB_STEP_SUMMARY"
