@@ -32,7 +32,7 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -64,78 +64,95 @@ jobs:
           if [ -z "$URL" ]; then
             echo "::error::No URL supplied."; exit 1
           fi
-          echo "Resolved URL host: $(echo "$URL" | sed -E 's#^https?://([^/]+).*#\1#')"
+          echo "Host: $(echo "$URL" | sed -E 's#^https?://([^/]+).*#\1#')"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
       - name: Download
         id: download
         run: |
-          set -euo pipefail
+          set -uo pipefail
           URL='${{ steps.resolve.outputs.url }}'
-          mkdir -p .fetch
+          mkdir -p .fetch/dl
           cd .fetch
+          : > diag.log
+
+          log() { echo "$@" | tee -a diag.log; }
 
           case "$URL" in
+
+            *drive.google.com/drive/folders*|*drive.google.com/folderview*)
+              log "=== Google Drive FOLDER ==="
+              gdown --folder --remaining-ok --no-cookies -O dl "$URL" 2>&1 | tee -a diag.log || true
+              log "--- folder contents ---"
+              find dl -type f -printf '%10s  %p\n' 2>/dev/null | sort -rn | tee -a diag.log
+              BIG=$(find dl -type f -printf '%s\t%p\n' 2>/dev/null | sort -rn | head -1 | cut -f2-)
+              if [ -n "${BIG:-}" ] && [ -s "$BIG" ]; then
+                log "picked: $BIG"
+                cp "$BIG" source.bin
+              fi
+              ;;
+
             *drive.google.com*|*docs.google.com*)
-              echo "Google Drive detected — three strategies, in order"
+              log "=== Google Drive FILE ==="
               ID=$(echo "$URL" | sed -nE 's#.*/d/([A-Za-z0-9_-]{10,}).*#\1#p')
               [ -z "$ID" ] && ID=$(echo "$URL" | sed -nE 's#.*[?&]id=([A-Za-z0-9_-]{10,}).*#\1#p')
-              echo "File id: ${ID:-<not found>}"
+              log "file id: ${ID:-<none>}"
 
-              echo "--- 1/3 gdown ---" | tee -a ../diag.log
-              gdown --fuzzy --no-cookies -O source.bin "$URL" 2>&1 | tee -a ../diag.log || true
+              log "--- 1/3 gdown ---"
+              gdown --fuzzy --no-cookies -O source.bin "$URL" 2>&1 | tee -a diag.log || true
 
               if [ ! -s source.bin ] && [ -n "$ID" ]; then
-                echo "--- 2/3 yt-dlp ---" | tee -a ../diag.log
-                yt-dlp --no-warnings -o source.bin "https://drive.google.com/file/d/$ID/view" 2>&1 | tee -a ../diag.log || true
+                log "--- 2/3 yt-dlp ---"
+                yt-dlp --no-warnings -o source.bin "https://drive.google.com/file/d/$ID/view" 2>&1 | tee -a diag.log || true
               fi
 
               if [ ! -s source.bin ] && [ -n "$ID" ]; then
-                echo "--- 3/3 curl with confirm token ---" | tee -a ../diag.log
-                curl -sL -c /tmp/ck "https://drive.usercontent.google.com/download?id=$ID&export=download" -o /tmp/page.html
-                TOKEN=$(sed -nE 's/.*name="confirm" value="([^"]+)".*/\1/p' /tmp/page.html | head -1)
-                UUID=$(sed -nE 's/.*name="uuid" value="([^"]+)".*/\1/p' /tmp/page.html | head -1)
-                curl -sL -b /tmp/ck \
-                  "https://drive.usercontent.google.com/download?id=$ID&export=download&confirm=${TOKEN:-t}&uuid=$UUID" \
-                  -o source.bin 2>&1 | tee -a ../diag.log || true
-              fi
-
-              if [ ! -s source.bin ] || head -c 512 source.bin | grep -qiE '<!doctype html|<html'; then
-                echo "::error::Google Drive refused the download. Open the file in Drive -> Share -> General access -> 'Anyone with the link' (Viewer), then run this again."
-                cp ../diag.log /tmp/diag.log 2>/dev/null || true
-                exit 1
+                log "--- 3/3 confirm-token curl ---"
+                curl -sL -c ck.txt "https://drive.usercontent.google.com/download?id=$ID&export=download" -o page.html
+                TOKEN=$(sed -nE 's/.*name="confirm" value="([^"]+)".*/\1/p' page.html | head -1)
+                UUID=$(sed -nE 's/.*name="uuid" value="([^"]+)".*/\1/p' page.html | head -1)
+                curl -sL -b ck.txt \
+                  "https://drive.usercontent.google.com/download?id=$ID&export=download&confirm=${TOKEN:-t}&uuid=${UUID:-}" \
+                  -o source.bin 2>&1 | tee -a diag.log || true
               fi
               ;;
+
             *youtube.com*|*youtu.be*|*tiktok.com*|*instagram.com*|*facebook.com*|*vimeo.com*|*x.com*|*twitter.com*)
-              echo "Platform URL detected — using yt-dlp"
+              log "=== platform URL (yt-dlp) ==="
               yt-dlp --no-playlist --no-warnings --newline \
                      -f 'bv*[height<=2160]+ba/b' --merge-output-format mp4 \
-                     -o source.%\(ext\)s "$URL"
-              mv source.* source.bin 2>/dev/null || true
+                     -o 'dl/source.%(ext)s' "$URL" 2>&1 | tee -a diag.log || true
+              BIG=$(find dl -type f -printf '%s\t%p\n' 2>/dev/null | sort -rn | head -1 | cut -f2-)
+              [ -n "${BIG:-}" ] && cp "$BIG" source.bin
               ;;
+
             *)
-              echo "Generic URL — using curl"
-              curl -fsSL --retry 3 --max-time 900 -o source.bin "$URL"
+              log "=== generic URL (curl) ==="
+              curl -fsSL --retry 3 --max-time 900 -o source.bin "$URL" 2>&1 | tee -a diag.log || true
               ;;
           esac
 
           if [ ! -s source.bin ]; then
-            echo "::error::Nothing was downloaded."; exit 1
+            log "FAILED: nothing downloaded"
+            echo "::error::Nothing could be downloaded. If this is Google Drive, set sharing to 'Anyone with the link'."
+            exit 1
           fi
 
           SIZE=$(stat -c%s source.bin)
-          echo "Downloaded $SIZE bytes"
-          file source.bin
+          log "downloaded bytes: $SIZE"
+          log "type: $(file -b source.bin)"
 
-          # Reject HTML (login walls, quota pages, virus-scan interstitials)
           if head -c 512 source.bin | grep -qiE '<!doctype html|<html'; then
-            echo "::error::The server returned a web page, not a file. The link is probably private or requires sign-in."
-            head -c 400 source.bin; exit 1
+            log "FAILED: server returned HTML (login wall / quota / private link)"
+            echo "::error::The server returned a web page, not a file — the link is private or requires sign-in."
+            exit 1
           fi
 
           if ! ffprobe -v error -show_entries stream=codec_type -of csv=p=0 source.bin | grep -q video; then
+            log "FAILED: no video stream"
+            ffprobe -hide_banner source.bin 2>&1 | head -20 | tee -a diag.log
             echo "::error::The downloaded file contains no video stream."
-            ffprobe -hide_banner source.bin 2>&1 | head -20; exit 1
+            exit 1
           fi
 
           EXT=mp4
@@ -147,20 +164,25 @@ jobs:
           mv source.bin "source.$EXT"
           echo "ext=$EXT" >> "$GITHUB_OUTPUT"
           echo "size=$SIZE" >> "$GITHUB_OUTPUT"
-          sha256sum "source.$EXT" | tee checksum.txt
+          sha256sum "source.$EXT" | tee -a diag.log
 
-          echo "### Source probe" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          ffprobe -hide_banner "source.$EXT" 2>&1 | grep -E 'Duration|Stream' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          log "--- probe ---"
+          ffprobe -hide_banner "source.$EXT" 2>&1 | grep -E 'Duration|Stream' | tee -a diag.log
+
+          {
+            echo "### Source acquired"
+            echo '```'
+            tail -25 diag.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stage into inbox (splitting anything over 90 MB)
         run: |
           set -euo pipefail
           EXT='${{ steps.download.outputs.ext }}'
           SIZE='${{ steps.download.outputs.size }}'
-          rm -f inbox/source.* inbox/checksum.txt inbox/part_*
-          mv .fetch/checksum.txt inbox/checksum.txt
+          rm -f inbox/source.* inbox/part_* inbox/fetch.log
+          cp .fetch/diag.log inbox/fetch.log
           if [ "$SIZE" -gt 94371840 ]; then
             echo "Large file — splitting into 90 MB parts"
             split -b 90m -d -a 3 ".fetch/source.$EXT" "inbox/part_"
@@ -194,8 +216,8 @@ jobs:
             echo "run: ${{ github.run_id }}   $(date -u +%FT%TZ)"
             echo "url: ${{ steps.resolve.outputs.url }}"
             echo "--- diagnostics ---"
-            cat diag.log 2>/dev/null || cat /tmp/diag.log 2>/dev/null || echo "(no diagnostics captured)"
-            echo "--- first bytes of whatever came back ---"
+            cat .fetch/diag.log 2>/dev/null || echo "(none captured)"
+            echo "--- first bytes of the response ---"
             head -c 600 .fetch/source.bin 2>/dev/null | tr -d '\000'
           } > inbox/fetch.log
           git add -f inbox/fetch.log
