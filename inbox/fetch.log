@@ -1,0 +1,14 @@
+run: 37212882794   2026-10-04T15:25:01Z
+url: https://drive.google.com/drive/folders/1kUqhf9ChzBL7pqAO8tt7XxtYwOuXvWww
+--- diagnostics ---
+=== Google Drive FOLDER ===
+usage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]
+             [--cookies FILE] [--cookies-from-browser BROWSER] [--no-cookies]
+             [--no-check-certificate] [--continue] [--retries N] [--folder]
+             [--json] [--format FORMAT] [--user-agent USER_AGENT]
+             [--timeout SECONDS]
+             url_or_id
+gdown: error: unrecognized arguments: --remaining-ok
+--- folder contents ---
+FAILED: nothing downloaded
+--- first bytes of the response ---
