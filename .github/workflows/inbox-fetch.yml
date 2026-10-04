@@ -62,12 +62,16 @@ jobs:
             URL="$(grep -vE '^\s*(#|$)' inbox/fetch.url | head -1 | tr -d '\r')"
           fi
           if [ -z "$URL" ]; then
-            echo "::error::No URL supplied."; exit 1
+            echo "::notice::inbox/fetch.url holds no link — nothing to collect."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           echo "Host: $(echo "$URL" | sed -E 's#^https?://([^/]+).*#\1#')"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
       - name: Download
+        if: steps.resolve.outputs.skip != 'true'
         id: download
         run: |
           set -uo pipefail
@@ -177,6 +181,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stage into inbox (splitting anything over 90 MB)
+        if: steps.resolve.outputs.skip != 'true'
         run: |
           set -euo pipefail
           EXT='${{ steps.download.outputs.ext }}'
@@ -194,6 +199,7 @@ jobs:
           fi
 
       - name: Commit to the branch
+        if: steps.resolve.outputs.skip != 'true'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -207,7 +213,7 @@ jobs:
           echo "Pushed to ${{ github.ref_name }}"
 
       - name: Report a failure back into the branch
-        if: failure()
+        if: steps.resolve.outputs.skip != 'true' && (failure())
         run: |
           set +e
           git config user.name "github-actions[bot]"
@@ -224,6 +230,6 @@ jobs:
           git commit -m "chore(inbox): fetch diagnostics [skip ci]" && git push origin "HEAD:${{ github.ref_name }}"
 
       - name: Reminder
-        if: always()
+        if: steps.resolve.outputs.skip != 'true' && (always())
         run: |
           echo "The file under inbox/ is temporary and must be deleted once pulled." >> "$GITHUB_STEP_SUMMARY"
