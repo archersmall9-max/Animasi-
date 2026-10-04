@@ -47,6 +47,9 @@ def _add_edit_arguments(p: argparse.ArgumentParser) -> None:
     g.add_argument("--focus-x", type=float, default=None, help="horizontal crop focus, 0..1 (default 0.5)")
     g.add_argument("--focus-y", type=float, default=None, help="vertical crop focus, 0..1 (default 0.5)")
     g.add_argument("--blur-strength", type=float, default=None, help="background blur multiplier")
+    g.add_argument("--smart-max-aspect", type=float, default=None,
+                   help="'smart' fill trims a wide source to this aspect first (default 1.30; "
+                        "1.0 makes the subject bigger, 1.78 keeps the whole frame)")
 
     g = p.add_argument_group("motion & look")
     g.add_argument("--zoom", default=None, choices=ZOOM_MODES, help="camera move across the clip")
@@ -93,7 +96,7 @@ def _config_from_args(args: argparse.Namespace):
     overrides = {
         "ratio": args.ratio, "fps": args.fps, "interpolate": args.interpolate,
         "fill": args.fill, "focus_x": args.focus_x, "focus_y": args.focus_y,
-        "blur_strength": args.blur_strength,
+        "blur_strength": args.blur_strength, "smart_max_aspect": args.smart_max_aspect,
         "zoom": args.zoom, "zoom_amount": args.zoom_amount,
         "grade": args.grade, "sharpen": args.sharpen,
         "denoise": args.denoise, "stabilize": args.stabilize,
