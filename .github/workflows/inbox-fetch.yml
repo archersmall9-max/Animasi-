@@ -82,7 +82,7 @@ jobs:
 
             *drive.google.com/drive/folders*|*drive.google.com/folderview*)
               log "=== Google Drive FOLDER ==="
-              gdown --folder --remaining-ok --no-cookies -O dl "$URL" 2>&1 | tee -a diag.log || true
+              gdown --folder --no-cookies -O dl "$URL" 2>&1 | tee -a diag.log || true
               log "--- folder contents ---"
               find dl -type f -printf '%10s  %p\n' 2>/dev/null | sort -rn | tee -a diag.log
               BIG=$(find dl -type f -printf '%s\t%p\n' 2>/dev/null | sort -rn | head -1 | cut -f2-)
