@@ -77,11 +77,34 @@ jobs:
 
           case "$URL" in
             *drive.google.com*|*docs.google.com*)
-              echo "Google Drive detected — using gdown"
-              gdown --fuzzy --no-cookies -O source.bin "$URL" || {
-                echo "::error::gdown failed. The most common cause is link sharing: open the file in Drive, Share, General access -> 'Anyone with the link'."
+              echo "Google Drive detected — three strategies, in order"
+              ID=$(echo "$URL" | sed -nE 's#.*/d/([A-Za-z0-9_-]{10,}).*#\1#p')
+              [ -z "$ID" ] && ID=$(echo "$URL" | sed -nE 's#.*[?&]id=([A-Za-z0-9_-]{10,}).*#\1#p')
+              echo "File id: ${ID:-<not found>}"
+
+              echo "--- 1/3 gdown ---" | tee -a ../diag.log
+              gdown --fuzzy --no-cookies -O source.bin "$URL" 2>&1 | tee -a ../diag.log || true
+
+              if [ ! -s source.bin ] && [ -n "$ID" ]; then
+                echo "--- 2/3 yt-dlp ---" | tee -a ../diag.log
+                yt-dlp --no-warnings -o source.bin "https://drive.google.com/file/d/$ID/view" 2>&1 | tee -a ../diag.log || true
+              fi
+
+              if [ ! -s source.bin ] && [ -n "$ID" ]; then
+                echo "--- 3/3 curl with confirm token ---" | tee -a ../diag.log
+                curl -sL -c /tmp/ck "https://drive.usercontent.google.com/download?id=$ID&export=download" -o /tmp/page.html
+                TOKEN=$(sed -nE 's/.*name="confirm" value="([^"]+)".*/\1/p' /tmp/page.html | head -1)
+                UUID=$(sed -nE 's/.*name="uuid" value="([^"]+)".*/\1/p' /tmp/page.html | head -1)
+                curl -sL -b /tmp/ck \
+                  "https://drive.usercontent.google.com/download?id=$ID&export=download&confirm=${TOKEN:-t}&uuid=$UUID" \
+                  -o source.bin 2>&1 | tee -a ../diag.log || true
+              fi
+
+              if [ ! -s source.bin ] || head -c 512 source.bin | grep -qiE '<!doctype html|<html'; then
+                echo "::error::Google Drive refused the download. Open the file in Drive -> Share -> General access -> 'Anyone with the link' (Viewer), then run this again."
+                cp ../diag.log /tmp/diag.log 2>/dev/null || true
                 exit 1
-              }
+              fi
               ;;
             *youtube.com*|*youtu.be*|*tiktok.com*|*instagram.com*|*facebook.com*|*vimeo.com*|*x.com*|*twitter.com*)
               echo "Platform URL detected — using yt-dlp"
@@ -160,6 +183,23 @@ jobs:
           git commit -m "chore(inbox): temporary source handover [skip ci]"
           git push origin "HEAD:${{ github.ref_name }}"
           echo "Pushed to ${{ github.ref_name }}"
+
+      - name: Report a failure back into the branch
+        if: failure()
+        run: |
+          set +e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          {
+            echo "run: ${{ github.run_id }}   $(date -u +%FT%TZ)"
+            echo "url: ${{ steps.resolve.outputs.url }}"
+            echo "--- diagnostics ---"
+            cat diag.log 2>/dev/null || cat /tmp/diag.log 2>/dev/null || echo "(no diagnostics captured)"
+            echo "--- first bytes of whatever came back ---"
+            head -c 600 .fetch/source.bin 2>/dev/null | tr -d '\000'
+          } > inbox/fetch.log
+          git add -f inbox/fetch.log
+          git commit -m "chore(inbox): fetch diagnostics [skip ci]" && git push origin "HEAD:${{ github.ref_name }}"
 
       - name: Reminder
         if: always()
