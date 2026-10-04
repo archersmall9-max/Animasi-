@@ -1,14 +1,22 @@
-run: 37212882794   2026-10-04T15:25:01Z
-url: https://drive.google.com/drive/folders/1kUqhf9ChzBL7pqAO8tt7XxtYwOuXvWww
---- diagnostics ---
 === Google Drive FOLDER ===
-usage: gdown [-h] [-V] [-O OUTPUT] [-q] [--proxy PROXY] [--speed SPEED]
-             [--cookies FILE] [--cookies-from-browser BROWSER] [--no-cookies]
-             [--no-check-certificate] [--continue] [--retries N] [--folder]
-             [--json] [--format FORMAT] [--user-agent USER_AGENT]
-             [--timeout SECONDS]
-             url_or_id
-gdown: error: unrecognized arguments: --remaining-ok
+warning: `--folder` is no longer required for folder URLs and will be removed in a future release
+Retrieving folder contents
+Retrieving folder contents completed
+Building directory structure
+Building directory structure completed
+Downloading...
+From: https://drive.google.com/uc?id=15zFPw11jYfKF6CUxTD1VpjLuPT8deYFm
+To: /home/runner/work/Animasi-/Animasi-/.fetch/dl/earlesspotato_1791122713122.mp4
+Processing file 15zFPw11jYfKF6CUxTD1VpjLuPT8deYFm earlesspotato_1791122713122.mp4
+  0%|          | 0.00/1.61M [00:00<?, ?B/s]100%|██████████| 1.61M/1.61M [00:00<00:00, 73.0MB/s]
+Download completed
 --- folder contents ---
-FAILED: nothing downloaded
---- first bytes of the response ---
+   1606953  dl/earlesspotato_1791122713122.mp4
+picked: dl/earlesspotato_1791122713122.mp4
+downloaded bytes: 1606953
+type: ISO Media, MP4 Base Media v1 [ISO 14496-12:2003]
+e199d4703ecda5acf36d54e3d8ef1c3c9887c2b19852e5b2e335d06299aab713  source.mp4
+--- probe ---
+  Duration: 00:00:15.53, start: 0.000000, bitrate: 827 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 720x1280, 774 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+  Stream #0:1[0x2](und): Audio: aac (HE-AAC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 52 kb/s (default)
