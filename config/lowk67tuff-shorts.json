@@ -1,0 +1,66 @@
+{
+  "ratio": "9:16",
+  "width": 1080,
+  "height": 1920,
+  "fps": 60,
+  "interpolate": false,
+
+  "fill": "auto",
+  "focus_x": 0.5,
+  "focus_y": 0.5,
+  "blur_strength": 1.0,
+  "bg_dim": 0.06,
+  "pad_color": "black",
+  "smart_max_aspect": 1.2,
+
+  "zoom": "push",
+  "zoom_amount": 0.05,
+  "hook_seconds": 1.2,
+
+  "grade": "clean",
+  "sharpen": 1.05,
+  "denoise": false,
+  "stabilize": false,
+
+  "start": null,
+  "end": null,
+  "max_duration": null,
+  "speed": 1.0,
+
+  "intro": "blurzoom",
+  "intro_duration": 0.45,
+  "outro": "blurout",
+  "outro_duration": 0.7,
+
+  "watermark_text": "@Lowk67Tuff",
+  "watermark_image": null,
+  "watermark_position": "top-left",
+  "watermark_style": "shadow",
+  "watermark_opacity": 0.88,
+  "watermark_scale": 1.0,
+  "watermark_margin_x": 0.05,
+  "watermark_margin_y": 0.045,
+
+  "keep_audio": true,
+  "loudness_target": -14.0,
+  "true_peak": -1.0,
+  "loudnorm_passes": 2,
+  "audio_fade": 0.25,
+  "silent_track_if_missing": true,
+
+  "crf": 17,
+  "x264_preset": "slow",
+  "max_bitrate": "28M",
+  "bufsize": "56M",
+  "audio_bitrate": "320k",
+  "faststart": true,
+
+  "notes": {
+    "channel": "@Lowk67Tuff",
+    "primary_platform": "YouTube Shorts",
+    "metadata_language": "English",
+    "usage": "viralcut edit SOURCE --config config/lowk67tuff-shorts.json -o exports/NAME.mp4",
+    "no_captions": "Subtitles, on-screen text and voice-over are intentionally disabled.",
+    "notes_on_smart_fill": "smart_max_aspect 1.2 keeps a 16:9 subject noticeably larger than a plain letterbox while still showing the whole frame."
+  }
+}

@@ -134,7 +134,8 @@ fonts, music and sound effects are all git-ignored and stay on your machine.
 That keeps the project small, fast to clone, and clear of the copyright
 complaints that get repositories flagged.
 
-Read [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before you push anything here.
+Read [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before you push anything here, and
+[docs/WORKFLOW.md](docs/WORKFLOW.md) for the production sequence used on every delivery.
 
 ---
 
