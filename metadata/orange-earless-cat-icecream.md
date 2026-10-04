@@ -21,15 +21,15 @@ A ginger cat whose ears were surgically removed after an ear tumour studies an i
 **Description**
 
 ```text
-Orange is a ginger cat with no ears. They were removed completely after an ear tumour, and despite how he looks he can still hear perfectly fine — the surgery left him with a round, potato-shaped head, which is why people online call him the earless hachimi.
+Orange is a ginger cat with no ears. They were removed completely after an ear tumour, and despite how he looks he can still hear perfectly fine.
 
-Here he gets an ice cream bar held right under his chin. One careful sniff, one lick, and then the most unbothered stare you will see today.
+Original video by Orange the earless cat — @earlesspotato on Instagram and TikTok. All credit to them; go and follow the original account.
+
+Here he gets an ice cream bar held right under his chin. One careful sniff, one lick, and then the most unbothered stare you will see today. The surgery left him with a round, potato-shaped head, which is why people online call him the earless hachimi.
 
 Worth saying, since it comes up every time: most adult cats are lactose intolerant, so ice cream is not a treat to give them. A single lick of plain ice cream is unlikely to hurt a healthy cat, but dairy, sugar and fat all sit badly with an obligate carnivore, and anything with chocolate or a sugar-free sweetener is genuinely dangerous. A chilled spoonful of their own wet food does the same job safely.
 
 Follow @Lowk67Tuff for more.
-
-Original footage: Orange the earless cat — @earlesspotato on Instagram and TikTok. Go and follow the original account.
 
 #earlesscat #orangecat #cat #hachimi #cutecat
 ```
@@ -53,9 +53,9 @@ cat with no ears, earless cat, orange cat, cat tries ice cream, earless hachimi,
 ```text
 ears gone, dignity intact. would you let your cat have a lick?
 
-Follow @Lowk67Tuff for more.
+Original video by Orange the earless cat — @earlesspotato on Instagram and TikTok. All credit to them; go and follow the original account.
 
-Original footage: Orange the earless cat — @earlesspotato on Instagram and TikTok. Go and follow the original account.
+Follow @Lowk67Tuff for more.
 
 #earlesscat #orangecat #cat #hachimi #cutecat
 ```
@@ -71,11 +71,13 @@ Original footage: Orange the earless cat — @earlesspotato on Instagram and Tik
 **Description**
 
 ```text
-Orange is a ginger cat with no ears — they were removed completely after an ear tumour, and he can still hear perfectly well. Here he is being offered an ice cream bar, and his reaction is the most deadpan thing on the internet.
+Orange is a ginger cat with no ears — removed completely after an ear tumour, and he can still hear perfectly well.
+
+Original video by Orange the earless cat — @earlesspotato on Instagram and TikTok. All credit to them; go and follow the original account.
+
+Being offered an ice cream bar, and reacting to it with absolutely nothing.
 
 Follow @Lowk67Tuff for more.
-
-Original footage: Orange the earless cat — @earlesspotato on Instagram and TikTok. Go and follow the original account.
 
 #earlesscat #orangecat #cat #hachimi #cutecat #cats
 ```

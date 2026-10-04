@@ -67,9 +67,13 @@ voice-over.
 
 ## Risks the uploader has to resolve before publishing
 
-1. **Rights.** The footage belongs to **@earlesspotato** (Orange / "earless
-   hachimi"), ~121 K followers on Instagram, ~93 K on TikTok. Written permission
-   is needed before this goes anywhere. Credit alone is not a licence.
+1. **Rights — decided: publish with credit, no permission sought.** The footage
+   belongs to **@earlesspotato** (Orange / "earless hachimi"), ~121 K followers
+   on Instagram, ~93 K on TikTok. The uploader has chosen to proceed on credit
+   alone. Recorded here plainly: credit is attribution, not a licence, and the
+   rights holder can still file a takedown at any time. Mitigation in place —
+   credit as the second paragraph of the description, above the fold, plus a
+   pinned comment naming the original account (see the upload sheet).
 2. **Music.** The bed is almost certainly a licensed library track from the
    originating platform. Carrying it onto YouTube invites a Content ID claim.
    Use the `NOMUSIC` master and add audio from YouTube's own library.

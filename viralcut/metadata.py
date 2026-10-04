@@ -95,12 +95,20 @@ class MetadataPack:
         return seen[:limit] if platform in {"youtube", "tiktok"} else seen[: max(limit, 8)]
 
     def _compose_description(self, platform: str, body: str, hashtags: list[str]) -> str:
-        parts = [body.strip()] if body.strip() else []
+        # Split the body so a top-positioned credit lands after the opening
+        # paragraph rather than after the whole wall of text.
+        parts = [p.strip() for p in body.split("\n\n") if p.strip()]
         cta = (self.brief.get("cta") or "").strip()
         credit = (self.brief.get("credit") or "").strip()
+        # "top" lifts the attribution to the second paragraph, where it is
+        # still visible before the description is expanded.  Burying a credit
+        # under a wall of text is the same as not crediting at all.
+        credit_top = str(self.brief.get("credit_position", "bottom")).lower() == "top"
+        if credit and credit_top:
+            parts.insert(1 if parts else 0, credit)
         if cta:
             parts.append(cta)
-        if credit:
+        if credit and not credit_top:
             parts.append(credit)
         if hashtags:
             parts.append(" ".join(hashtags))

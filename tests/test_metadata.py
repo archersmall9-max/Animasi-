@@ -84,3 +84,20 @@ def test_markdown_and_json_written(tmp_path):
     assert "Youtube" in text and "Tiktok" in text
     assert json.loads(js.read_text())["platforms"]["tiktok"]["hashtags"]
     assert pack.ok
+
+
+def test_credit_can_be_lifted_above_the_body():
+    brief = dict(BRIEF)
+    brief["descriptions"] = {"default": "Opening line.\n\nSecond paragraph.\n\nThird paragraph."}
+    brief["credit"] = "Original video by @someone."
+    brief["credit_position"] = "top"
+    pack = MetadataPack.from_brief(brief)
+    desc = pack.platforms["youtube"]["description"]
+    paragraphs = desc.split("\n\n")
+    assert paragraphs[0] == "Opening line."
+    assert paragraphs[1] == "Original video by @someone."
+    # and the default stays at the bottom, above only the hashtags
+    brief.pop("credit_position")
+    bottom = MetadataPack.from_brief(brief).platforms["youtube"]["description"]
+    assert bottom.split("\n\n")[1] == "Second paragraph."
+    assert "Original video by @someone." in bottom
