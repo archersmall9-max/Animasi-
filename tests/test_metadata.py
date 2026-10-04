@@ -40,13 +40,15 @@ def test_description_contains_cta_and_hashtags():
     assert "#demo" in desc
 
 
-def test_youtube_caps_hashtags_at_three_and_tags_at_500_chars():
+def test_youtube_caps_hashtags_at_five_and_tags_at_500_chars():
+    # 3-5 is the range YouTube's own guidance and 2026 field data converge on;
+    # the first three are the ones rendered above the title.
     brief = dict(BRIEF)
     brief["hashtags"] = {"core": [f"#tag{i}" for i in range(12)]}
     brief["tags"] = [f"keyword number {i}" for i in range(80)]
     pack = MetadataPack.from_brief(brief)
     yt = pack.platforms["youtube"]
-    assert len(yt["hashtags"]) == 3
+    assert len(yt["hashtags"]) == 5
     assert yt["tags_char_count"] <= LIMITS["youtube"]["tags_total"]
     assert pack.ok
 

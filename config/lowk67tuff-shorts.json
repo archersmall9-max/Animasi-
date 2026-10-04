@@ -35,7 +35,7 @@
   "watermark_text": "@Lowk67Tuff",
   "watermark_image": null,
   "watermark_position": "top-left",
-  "watermark_style": "shadow",
+  "watermark_style": "outline",
   "watermark_opacity": 0.88,
   "watermark_scale": 1.0,
   "watermark_margin_x": 0.05,

@@ -39,12 +39,21 @@ _SHARPEN_BASE: dict[str, float] = {
 }
 
 
-def build_grade(cfg: EditConfig) -> list[str]:
-    """Return a list of filter strings (may be empty) for the look stage."""
+DENOISE = "hqdn3d=1.5:1.5:6:6"
+
+
+def build_grade(cfg: EditConfig, include_denoise: bool = True) -> list[str]:
+    """Return a list of filter strings (may be empty) for the look stage.
+
+    ``include_denoise`` lets the renderer hoist the clean-up pass in front of
+    the framing stage.  When a small source is being enlarged, scrubbing the
+    compression noise at native resolution is markedly better than enlarging
+    the artefacts first and trying to filter them afterwards.
+    """
     chain: list[str] = []
-    if cfg.denoise:
+    if cfg.denoise and include_denoise:
         # Light temporal+spatial clean-up; helps compressed sources a lot.
-        chain.append("hqdn3d=1.5:1.5:6:6")
+        chain.append(DENOISE)
     chain.extend(_GRADES.get(cfg.grade, []))
     amount = _SHARPEN_BASE.get(cfg.grade, 0.3) * max(0.0, cfg.sharpen)
     if amount > 0.01:

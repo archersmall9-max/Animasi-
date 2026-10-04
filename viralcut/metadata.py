@@ -26,7 +26,7 @@ LIMITS: dict[str, dict[str, int]] = {
 }
 
 RECOMMENDED: dict[str, dict[str, Any]] = {
-    "youtube": {"title": 60, "hashtags": 3, "note": "First 40-60 chars are what a phone shows."},
+    "youtube": {"title": 60, "hashtags": 5, "note": "First 40-60 chars are what a phone shows; 3-5 hashtags is the 2026 sweet spot and the first 3 render above the title."},
     "tiktok": {"title": 90, "hashtags": 5, "note": "Caption competes with UI; front-load the hook."},
     "instagram": {"title": 125, "hashtags": 8, "note": "3-8 precise tags beat 30 generic ones."},
     "facebook": {"title": 80, "hashtags": 3, "note": "Reels inherit the caption; keep it punchy."},
@@ -87,8 +87,6 @@ class MetadataPack:
         else:
             tags = [*groups.get("core", []), *groups.get("niche", []), *groups.get("broad", [])]
         limit = int(RECOMMENDED.get(platform, {}).get("hashtags", 8))
-        if platform == "youtube":
-            limit = 3
         seen: list[str] = []
         for tag in tags:
             tag = tag if tag.startswith("#") else f"#{tag}"

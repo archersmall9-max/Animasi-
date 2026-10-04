@@ -28,7 +28,7 @@ from .audio import build_audio_chain, measure_loudness
 from .config import EditConfig
 from .ffmpeg_tool import FFmpegError, find_ffmpeg
 from .framing import build_framing, framing_report
-from .grade import build_grade
+from .grade import DENOISE, build_grade
 from .plates import build_plate
 from .probe import MediaInfo, probe
 from .watermark import overlay_position, render_watermark
@@ -104,6 +104,16 @@ def _build_body_graph(
     segments: list[str] = []
     pre: list[str] = []
 
+    # Denoise ahead of the framing stage whenever the source is being
+    # enlarged: cleaning compression artefacts at native resolution keeps the
+    # upscale from magnifying them.  Otherwise it stays in the look stage.
+    upscaling = bool(info.width and info.height) and (
+        cfg.width > info.width or cfg.height > info.height
+    )
+    denoise_first = bool(cfg.denoise and upscaling)
+    if denoise_first:
+        pre.append(DENOISE)
+
     if abs(cfg.speed - 1.0) > 1e-3 and not still:
         pre.append(f"setpts=PTS/{cfg.speed:.6f}")
     if cfg.stabilize and transforms is not None:
@@ -119,7 +129,7 @@ def _build_body_graph(
     frame_segments, mode = build_framing(info, cfg, work_w, work_h, label_in, "framed")
     segments.extend(frame_segments)
 
-    tail: list[str] = build_grade(cfg)
+    tail: list[str] = build_grade(cfg, include_denoise=not denoise_first)
     if still:
         if (work_w, work_h) != (cfg.width, cfg.height):
             tail.append(f"scale={cfg.width}:{cfg.height}:flags=lanczos")
