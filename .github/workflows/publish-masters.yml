@@ -1,0 +1,140 @@
+name: Publish masters
+
+# Renders the cut on a GitHub runner and attaches the files to a release.
+#
+# Why this exists: finished video must not live in the git tree, but it still
+# has to reach a human.  A runner has both the pipeline (committed here) and
+# the source (still reachable as a blob in this repository's history), so it
+# can rebuild the masters from scratch and publish them as release assets.
+# Nothing media-shaped is ever added to a commit.
+#
+# Trigger: push any change to release/request.json.
+
+on:
+  push:
+    paths:
+      - 'release/request.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-masters
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # the source blob lives in history, not in HEAD
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install the pipeline
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet pillow imageio-ffmpeg
+          FF="$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')"
+          echo "VIRALCUT_FFMPEG=$FF" >> "$GITHUB_ENV"
+          "$FF" -version | head -1
+
+      - name: Recover the source from history
+        id: src
+        run: |
+          set -euo pipefail
+          REF="$(jq -r '.source.ref' release/request.json)"
+          SPATH="$(jq -r '.source.path' release/request.json)"
+          WANT="$(jq -r '.source.sha256 // ""' release/request.json)"
+
+          mkdir -p .build
+          if ! git cat-file -e "${REF}:${SPATH}" 2>/dev/null; then
+            echo "::error::${REF}:${SPATH} is not reachable from this checkout."
+            exit 1
+          fi
+          git show "${REF}:${SPATH}" > .build/source.bin
+
+          GOT="$(sha256sum .build/source.bin | cut -d' ' -f1)"
+          echo "recovered $(stat -c%s .build/source.bin) bytes, sha256 $GOT"
+          if [ -n "$WANT" ] && [ "$WANT" != "$GOT" ]; then
+            echo "::error::checksum mismatch — expected $WANT"
+            exit 1
+          fi
+
+      - name: Render
+        run: |
+          set -euo pipefail
+          CONFIG="$(jq -r '.config' release/request.json)"
+          mkdir -p out
+          COUNT="$(jq '.renders | length' release/request.json)"
+          for i in $(seq 0 $((COUNT - 1))); do
+            OUT="$(jq -r ".renders[$i].out" release/request.json)"
+            mapfile -t ARGS < <(jq -r ".renders[$i].args[]" release/request.json)
+            echo "::group::$OUT"
+            python -m viralcut edit .build/source.bin \
+              --config "$CONFIG" "${ARGS[@]}" -o "out/$OUT"
+            echo "::endgroup::"
+          done
+          ls -la out/
+
+      - name: Verify the output really is what was ordered
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in out/*.mp4; do
+            line="$("$VIRALCUT_FFMPEG" -hide_banner -i "$f" 2>&1 | grep 'Stream #0:0' || true)"
+            echo "$f"
+            echo "    $line"
+            echo "$line" | grep -q '1080x1920' || { echo "::error::$f is not 1080x1920"; fail=1; }
+            echo "$line" | grep -q '60 fps'   || { echo "::error::$f is not 60 fps"; fail=1; }
+          done
+          [ "$fail" -eq 0 ]
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="$(jq -r '.tag' release/request.json)"
+          NAME="$(jq -r '.name' release/request.json)"
+          DRAFT="$(jq -r '.draft // true' release/request.json)"
+          NOTES="$(jq -r '.notes // ""' release/request.json)"
+
+          {
+            echo "$NOTES"
+            echo
+            echo "| file | audio |"
+            echo "| --- | --- |"
+            jq -r '.renders[] | "| \(.out) | \(.note // "-") |"' release/request.json
+            echo
+            echo "Built from \`$(jq -r '.source.ref' release/request.json)\` by run [$GITHUB_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+          } > .build/notes.md
+
+          FLAGS=(--title "$NAME" --notes-file .build/notes.md --target "$GITHUB_SHA")
+          [ "$DRAFT" = "true" ] && FLAGS+=(--draft)
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release exists — replacing its assets"
+            gh release upload "$TAG" out/*.mp4 --clobber
+          else
+            gh release create "$TAG" out/*.mp4 "${FLAGS[@]}"
+          fi
+
+          echo "### Masters published" >> "$GITHUB_STEP_SUMMARY"
+          gh release view "$TAG" --json url,isDraft \
+            -q '"\(.url)  (draft: \(.isDraft))"' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Where to find it
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="$(jq -r '.tag' release/request.json)"
+          gh release view "$TAG" --json url,isDraft,assets \
+            -q '"url: \(.url)\ndraft: \(.isDraft)\nassets: \(.assets | map(.name) | join(", "))"' || true
