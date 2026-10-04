@@ -1,0 +1,16 @@
+# Normalize line endings so the repo stays clean across OSes
+* text=auto eol=lf
+
+*.py    text diff=python
+*.md    text
+*.json  text
+*.yml   text
+*.yaml  text
+*.sh    text eol=lf
+
+# Binary-safe (should not normally exist in this repo)
+*.png   binary
+*.jpg   binary
+*.ttf   binary
+*.otf   binary
+*.mp4   binary

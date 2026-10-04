@@ -1,73 +1,92 @@
-.venv/
+# ---------------------------------------------------------------------------
+# ViralCut — repository hygiene
+#
+# Rule #1: SOURCE AND RENDERED MEDIA NEVER ENTER GIT.
+# Media files are large, often third-party owned, and are the single most
+# common cause of DMCA strikes / repository flags / account suspension.
+# This repository ships CODE ONLY. See docs/COMPLIANCE.md.
+# ---------------------------------------------------------------------------
+
+# --- Media (never commit) --------------------------------------------------
+*.mp4
+*.mkv
+*.mov
+*.avi
+*.webm
+*.m4v
+*.flv
+*.ts
+*.m2ts
+*.wmv
+*.mp3
+*.wav
+*.m4a
+*.aac
+*.flac
+*.ogg
+*.opus
+*.gif
+
+# --- Working directories ---------------------------------------------------
+downloads/
+sources/
+exports/
+renders/
+work/
+tmp/
+.cache/
+*.tmp
+
+# Keep folder placeholders only
+!**/.gitkeep
+
+# --- Large images / exported frames ---------------------------------------
+frames/
+thumbnails/
+*.psd
+*.tif
+*.tiff
+
+# ...but allow small documentation images and generated brand assets
+!docs/img/*.png
+!docs/img/*.jpg
+
+# --- Python ----------------------------------------------------------------
 __pycache__/
-*.pyc
-*.pyo
-.working_dir/
-.workbuddy/
-.agnes_config/
-.writing/
-
-# 媒体产物（限定在工作目录下，保留根目录测试素材）
-.working_dir/**/*.mp4
-.working_dir/**/*.png
-.working_dir/**/*.jpg
-.working_dir/**/*.jpeg
-
-# 回归测试服务日志
-.regression_server.log
-
-.DS_Store
+*.py[cod]
+*$py.class
 *.egg-info/
-dist/
+.eggs/
+.venv/
+venv/
+env/
+.python-version
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
 build/
-static/generated/
+dist/
 
-# 前端依赖与本地构建缓存（构建产物 static/assets/ 需提交进仓库）
-frontend/node_modules/
-frontend/.vite/
+# --- Secrets / credentials (never commit) ----------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+cookies.txt
+*cookies*.txt
+credentials.json
+client_secret*.json
+token*.json
 
-# IDE 本地数据
-.codebuddy/
-.trae/
-
-# 模型接口报错收集
-error_logs/
-
-# 单元测试覆盖度产物（不提交，CI 另生成）
-.coverage
-.coverage.*
-htmlcov/
-coverage.xml
-
-# Mock 回归测试生成的报告与临时数据（预制素材 assets/ fixture_data/ 需保留）
-tests/mock_regression/reports/
-tests/mock_regression/**/.working_dir/
-
-# 本地 Docker 持久化数据（宿主机挂载目录）
-agnes_data/
-
-# moviepy 临时产物（运行期泄漏到仓库根目录）
-final_video*TEMP*.mp4
-*TEMP*_wvf_snd.mp4
-
-# 覆盖率分析产物
-.coverage
-.coverage.*
-htmlcov/
-coverage.xml
-coverage.json
-scripts/_verify_resume_skip.py
-
-scripts/_i18n_fill.py
-scripts/_i18n_fill2.py
-scripts/_i18n_fill_all.py
-
-# 回归测试运行期产物（报告与专用工作目录，不入库）
-.regression_workspace/
-docs/dev/regression_report.json
-docs/dev/regression_report.md
-docs/dev/regression_issues.md
-scripts/_i18n_langswitch.py
-scripts/_i18n_cc.py
-scripts/_i18n_resume.py
-scripts/_i18n_edit.py
+# --- OS / editor -----------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*~

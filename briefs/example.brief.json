@@ -1,0 +1,52 @@
+{
+  "slug": "example-video",
+  "topic": "Short, plain description of what the video shows",
+  "summary": "Two sentences a stranger could read and understand what this clip is and why it is worth 30 seconds.",
+  "platforms": ["youtube", "tiktok", "instagram"],
+
+  "research": {
+    "primary_keyword": "the one phrase this should rank for",
+    "secondary_keywords": ["variant", "synonym", "how people actually type it"],
+    "entities": ["proper nouns a classifier already knows"],
+    "audience": "who stops scrolling for this, and where they are",
+    "hook": "the exact moment that earns the first three seconds",
+    "competition": "what the top videos on this subject already do",
+    "gap": "what they all miss that this clip has"
+  },
+
+  "titles": {
+    "default": [
+      "Primary title — specific, front-loaded, under 60 characters",
+      "Alternative angle on the same hook",
+      "Third option for A/B testing"
+    ],
+    "youtube": ["Search-shaped title #Shorts"],
+    "tiktok": ["Conversational title that reads like a person wrote it"],
+    "instagram": ["Short line that works above the fold"]
+  },
+
+  "descriptions": {
+    "default": "First line carries the primary keyword and the hook.\nSecond line gives context: where, when, what is happening.",
+    "youtube": "Searchable first line.\n\nContext paragraph with secondary keywords used naturally, not stuffed.",
+    "tiktok": "Conversational caption. One question to invite comments."
+  },
+
+  "hashtags": {
+    "core": ["#exact", "#subject", "#tags"],
+    "niche": ["#smallerCommunity", "#specific"],
+    "broad": ["#category"]
+  },
+
+  "tags": [
+    "youtube tag 1",
+    "youtube tag 2",
+    "long tail phrase people search",
+    "entity name"
+  ],
+
+  "cta": "Follow @Lowk67Tuff for more.",
+  "credit": "Credit: original creator / licence, when the source is not your own.",
+  "sources": [
+    "https://example.com/where-the-research-came-from"
+  ]
+}

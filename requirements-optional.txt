@@ -1,0 +1,4 @@
+# Optional helpers — not required for the core editor to run.
+
+imageio-ffmpeg>=0.5.1   # portable FFmpeg binary fallback (no system install needed)
+yt-dlp>=2024.1.1        # fetch remote sources YOU own or are licensed to use
