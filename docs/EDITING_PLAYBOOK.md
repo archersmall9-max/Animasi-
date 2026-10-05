@@ -110,7 +110,50 @@ title and progress bar. The watermark is rasterised by Pillow and composited
 *after* the intro and outro, so it is never blurred and is readable from the
 very first frame.
 
-## 8. Encoder settings
+## 8. Comment captions
+
+Off unless `--captions FILE` is passed. The file is a JSON list of
+`{text, start, end}` in **output seconds** — the clock of the finished file,
+intro included — with optional `position`, `scale`, `fade` and `align`.
+
+```bash
+python3 -m viralcut edit SRC --captions captions/orange-earless-cat.json -o OUT.mp4
+```
+
+**Where they go.** Anchored at 70 % of frame height, centred, wrapped to two
+lines at most. Two bands are off limits: 11–22.5 % crosses the subject's face
+on a vertical crop, and anything below 82 % collides with the Shorts title,
+the progress bar and the action rail. `validate_captions` warns about lines
+that overrun the cut, flash for under half a second, or overlap each other.
+
+**How they are drawn.** This ffmpeg build has no `drawtext`, so each line is
+rasterised by Pillow to an RGBA PNG — white fill, dark stroke, blurred drop
+shadow — and composited with `overlay`. Captions chain *before* the
+watermark, so branding always sits on top.
+
+**Timing without `enable=`.** Every caption PNG is looped into a full-length
+stream and gated by a pair of alpha fades:
+
+```
+format=rgba,loop=loop=-1:size=1,fps=FPS,trim=end=TOTAL,setpts=PTS-STARTPTS,
+fade=t=in:st=START:d=F:alpha=1,fade=t=out:st=END-F:d=F:alpha=1
+```
+
+The fades *are* the gate: the stream is fully transparent outside the window.
+The fade is clamped to half the caption's duration. Only when a caption asks
+for `fade: 0` does the overlay take `enable='between(t,…)'` instead.
+
+**Emoji.** `NotoColorEmoji.ttf` is a CBDT bitmap font: it rasterises at
+exactly 109 px and nothing else. Each glyph is drawn at 109 px, cropped to
+its bounding box and resampled to 0.98 × the line height, with
+`embedded_color=True`. The shadow pass gets a black silhouette of the same
+glyph so pale emoji keep their halo over pale footage. There is no `raqm`
+shaper in this build, so **single-codepoint emoji only** — ZWJ sequences,
+flags and skin-tone modifiers fall apart. Verified: 👀 🧡 😐 🍦 💀. With no
+colour-emoji font installed the emoji is dropped with a warning rather than
+rendered as tofu.
+
+## 9. Encoder settings
 
 ```
 x264  CRF 18 · preset slow · high profile · level 4.2
@@ -126,9 +169,9 @@ head of the file so upload-side processing starts immediately. The master is
 BT.709-tagged, which stops washed-out or over-saturated colour after
 transcoding.
 
-## 9. What is deliberately absent
+## 10. What is deliberately absent
 
-* **Captions / subtitles** — added only on request.
+* **Captions / subtitles** — opt-in per job, see §8.
 * **Voice-over / TTS** — added only on request.
 * **Music and sound effects** — a licensing liability, and platform-native
   audio features (trending sounds added *at upload*) outperform baked-in beds.

@@ -80,6 +80,14 @@ def _add_edit_arguments(p: argparse.ArgumentParser) -> None:
     g.add_argument("--watermark-scale", type=float, default=None)
     g.add_argument("--no-watermark", action="store_true", help="render without any watermark")
 
+    g = p.add_argument_group("captions")
+    g.add_argument("--captions", default=None, metavar="FILE",
+                   help="JSON file of timed on-screen captions (emoji supported)")
+    g.add_argument("--caption-size", type=float, default=None,
+                   help="type height as a fraction of canvas height (default 0.0345)")
+    g.add_argument("--no-captions", action="store_true",
+                   help="ignore any captions the config carries")
+
     g = p.add_argument_group("audio & encode")
     g.add_argument("--mute", action="store_true", help="drop the source audio (silent track kept)")
     g.add_argument("--loudness-target", type=float, default=None, help="LUFS target (default -14)")
@@ -120,6 +128,15 @@ def _config_from_args(args: argparse.Namespace):
         cfg.validate()
     else:
         cfg = build_config(args.preset, **overrides)
+    if args.caption_size is not None:
+        cfg.caption_size = args.caption_size
+    if args.captions:
+        import json as _json
+        from pathlib import Path as _Path
+        data = _json.loads(_Path(args.captions).read_text(encoding="utf-8"))
+        cfg.captions = data.get("captions", data) if isinstance(data, dict) else data
+    if args.no_captions:
+        cfg.captions = []
     if args.no_watermark:
         cfg.watermark_text, cfg.watermark_image = "", None
     if args.mute:

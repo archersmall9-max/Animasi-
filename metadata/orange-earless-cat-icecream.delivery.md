@@ -62,8 +62,8 @@ the risk note below.
 | `exports/CatIceCream_Shorts_NOMUSIC.mp4` | silent track | add platform-library audio at upload |
 
 Both: 1080×1920, 60 fps CFR, H.264 High L4.2, CRF 17, yuv420p, bt709,
-AAC 320 k 48 kHz, faststart, 15.38 s. No captions, no on-screen text, no
-voice-over.
+AAC 320 k 48 kHz, faststart, 15.38 s. Five burned-in comment captions
+(`captions/orange-earless-cat.json`). No voice-over.
 
 ## Risks the uploader has to resolve before publishing
 

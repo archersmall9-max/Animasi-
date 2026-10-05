@@ -1,0 +1,36 @@
+{
+  "_": "Timed captions for the Orange / ice cream cut. Times are OUTPUT seconds, so they already include the 0.45s intro plate. Total runtime is 15.38s and the outro fade begins at 14.68s, which is why nothing is scheduled past 14.40s.",
+
+  "captions": [
+    {
+      "text": "wait… where are his ears? 👀",
+      "start": 0.75,
+      "end": 3.20,
+      "note": "The question every comment section asks first. Posing it out loud turns a scroll-past into a watch."
+    },
+    {
+      "text": "a tumour took them 🧡 he hears just fine",
+      "start": 3.50,
+      "end": 6.10,
+      "note": "Pays the question off immediately. The reassurance is the part people share."
+    },
+    {
+      "text": "ice cream gone. he did not flinch 😐",
+      "start": 6.40,
+      "end": 9.00,
+      "note": "Lands exactly on the beat where the bar leaves frame and he sits there unmoved."
+    },
+    {
+      "text": "round two 🍦",
+      "start": 9.40,
+      "end": 11.50,
+      "note": "Short, because the picture is doing the work: the bar comes back bigger."
+    },
+    {
+      "text": "one lick. that's the whole review 💀",
+      "start": 11.90,
+      "end": 14.40,
+      "note": "Closing joke, clear of the outro fade."
+    }
+  ]
+}

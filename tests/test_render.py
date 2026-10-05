@@ -124,3 +124,65 @@ def test_zoom_bounds_are_symmetric():
     assert (scale, start, end) == (1.1, 1.0, 1.1)
     scale, start, end = _zoom_bounds(build_config("shorts", zoom="hook", zoom_amount=0.1))
     assert (scale, start, end) == (1.1, 1.1, 1.0)
+
+
+
+
+def _band_ink(path, t):
+    """Mean brightness of the strip captions are drawn into.
+
+    White text on the flat grey backdrop raises this; nothing else in the
+    frame moves, so any change is the caption. -ss goes after -i so the
+    seek is frame-accurate rather than snapping to a keyframe.
+    """
+    import subprocess
+
+    from viralcut.ffmpeg_tool import find_ffmpeg
+
+    raw = subprocess.run(
+        [str(find_ffmpeg()), "-hide_banner", "-loglevel", "error",
+         "-i", str(path), "-ss", f"{t}", "-frames:v", "1",
+         "-vf", "crop=iw:ih*0.16:0:ih*0.62,format=gray", "-f", "rawvideo", "-"],
+        capture_output=True, check=True,
+    ).stdout
+    assert raw, f"no frame at t={t}"
+    return sum(raw) / len(raw)
+
+
+def _caption_config(captions):
+    cfg = fast_config()
+    cfg.intro, cfg.outro = "none", "none"
+    cfg.watermark_text = ""
+    cfg.zoom = "off"
+    cfg.captions = captions
+    return cfg
+
+
+@requires_ffmpeg
+def test_captions_appear_only_inside_their_window(flat_clip, tmp_path):
+    """A hard-cut caption must be on screen for its window and absent outside
+    it. The source is static, so two timestamps of one render differ only by
+    what the overlay drew."""
+    out = tmp_path / "captioned.mp4"
+    render(flat_clip, out,
+           _caption_config([{"text": "HELLO", "start": 0.70, "end": 1.30, "fade": 0.0}]))
+
+    before, during, after = _band_ink(out, 0.30), _band_ink(out, 1.00), _band_ink(out, 1.70)
+
+    assert during > before + 2.0, f"caption never reached the picture ({before:.2f} -> {during:.2f})"
+    assert abs(after - before) < 0.4, f"caption left a trace behind it ({before:.2f} vs {after:.2f})"
+
+
+@requires_ffmpeg
+def test_faded_captions_ramp_rather_than_pop(flat_clip, tmp_path):
+    """With a fade set, the caption should be part-way up mid-ramp."""
+    out = tmp_path / "faded.mp4"
+    render(flat_clip, out,
+           _caption_config([{"text": "HELLO", "start": 0.50, "end": 1.80, "fade": 0.40}]))
+
+    off = _band_ink(out, 0.20)
+    mid = _band_ink(out, 0.70)
+    full = _band_ink(out, 1.20)
+
+    assert off < mid < full, f"expected a ramp, got off={off:.2f} mid={mid:.2f} full={full:.2f}"
+    assert full - off > 2.0, "caption never reached full strength"

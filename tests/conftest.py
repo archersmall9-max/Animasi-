@@ -3,6 +3,7 @@ the repository never needs (and never contains) sample media."""
 
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 
@@ -43,3 +44,25 @@ def portrait_clip(media_dir: Path) -> Path:
 @pytest.fixture(scope="session")
 def silent_clip(media_dir: Path) -> Path:
     return make_clip(media_dir / "silent.mp4", "480x480", 25, 2.0, audio=False)
+
+
+@pytest.fixture(scope="session")
+def flat_clip(media_dir: Path) -> Path:
+    """A static, flat-grey clip.
+
+    Every frame is identical, so two timestamps from the *same* render can be
+    compared directly. That isolates an overlay perfectly: no moving pattern,
+    and no second encode whose colour round-trip would muddy the difference.
+    """
+    out = media_dir / "flat.mp4"
+    if out.exists():
+        return out
+    subprocess.run(
+        [str(find_ffmpeg()), "-hide_banner", "-loglevel", "error",
+         "-f", "lavfi", "-i", "color=c=0x303030:s=360x640:r=30:d=2.0",
+         "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=48000",
+         "-t", "2.0", "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
+         "-c:a", "aac", "-shortest", "-y", str(out)],
+        check=True, capture_output=True,
+    )
+    return out

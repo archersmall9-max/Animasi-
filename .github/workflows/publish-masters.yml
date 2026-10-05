@@ -45,6 +45,20 @@ jobs:
           echo "VIRALCUT_FFMPEG=$FF" >> "$GITHUB_ENV"
           "$FF" -version | head -1
 
+      - name: Install fonts
+        # The colour-emoji font is ~10 MB, so it is installed here rather than
+        # committed — a repository full of binaries is exactly what gets an
+        # account flagged. Captions degrade to text-only without it, which
+        # would silently change the render, so this step is not optional.
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-color-emoji fonts-dejavu-core
+          fc-list | grep -i "noto color emoji" || {
+            echo "::error::colour-emoji font missing — captions would lose their emoji"
+            exit 1
+          }
+
       - name: Recover the source from history
         id: src
         run: |
@@ -78,7 +92,13 @@ jobs:
             mapfile -t ARGS < <(jq -r ".renders[$i].args[]" release/request.json)
             echo "::group::$OUT"
             python -m viralcut edit .build/source.bin \
-              --config "$CONFIG" "${ARGS[@]}" -o "out/$OUT"
+              --config "$CONFIG" "${ARGS[@]}" -o "out/$OUT" 2>&1 | tee ".build/$OUT.log"
+            # Catches both "no colour-emoji font found" and
+            # "colour-emoji font ... unusable".
+            if grep -qE "emoji.*dropped" ".build/$OUT.log"; then
+              echo "::error::$OUT rendered without emoji — aborting rather than shipping a downgraded master"
+              exit 1
+            fi
             echo "::endgroup::"
           done
           ls -la out/

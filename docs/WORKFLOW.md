@@ -2,7 +2,8 @@
 
 The exact sequence run for every delivery. House settings:
 `config/lowk67tuff-shorts.json` — 1080 × 1920, 60 fps, `@Lowk67Tuff`
-top-left, no captions, no voice-over, English metadata, YouTube Shorts first.
+top-left, no voice-over, English metadata, YouTube Shorts first. Captions are
+off by default and enabled per job with `--captions`.
 
 ---
 

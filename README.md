@@ -28,8 +28,9 @@ viralcut edit raw.mp4 --preset shorts
 | **Audio** | Two-pass EBU R128 loudness normalisation to −14 LUFS / −1 dBTP, with fades | The platform's own normaliser then does nothing — no volume drop against competing videos |
 | **Encode** | x264 CRF 18, high profile, CFR 60, bt709, `+faststart` | Maximum quality inside what the platforms actually accept |
 
-Nothing is added that you did not ask for: **no captions, no subtitles, no
-voice-over, no stock music.** Those are opt-in by design.
+Everything beyond the cut is **opt-in**: captions are off unless you pass
+`--captions`, and there is **no voice-over and no stock music** at all. What
+you ask for is what gets rendered.
 
 ---
 

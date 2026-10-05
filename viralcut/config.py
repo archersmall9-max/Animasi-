@@ -77,6 +77,21 @@ class EditConfig:
     watermark_scale: float = 1.0
     watermark_margin_x: float = 0.050  # fraction of canvas width
     watermark_margin_y: float = 0.045  # fraction of canvas height
+    watermark_font: str | None = None
+
+    # --- captions -----------------------------------------------------------
+    # Off unless a cut explicitly asks for them. Each entry is
+    # {"text", "start", "end", "position", "scale", "fade", "align"}.
+    captions: list[dict[str, Any]] = field(default_factory=list)
+    caption_size: float = 0.0345      # type height as a fraction of canvas height
+    caption_max_width: float = 0.86    # wrap before the block gets this wide
+    caption_leading: float = 1.12      # line spacing, times the line height
+    caption_stroke: float = 0.085      # outline weight, times the type size
+    caption_colour: str = "#FFFFFF"
+    caption_stroke_colour: str = "#000000"
+    caption_opacity: float = 1.0
+    caption_font: str | None = None
+    caption_emoji_font: str | None = None
 
     # --- audio --------------------------------------------------------------
     keep_audio: bool = True

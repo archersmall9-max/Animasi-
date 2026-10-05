@@ -37,7 +37,7 @@
   "watermark_position": "top-left",
   "watermark_style": "outline",
   "watermark_opacity": 0.88,
-  "watermark_scale": 1.0,
+  "watermark_scale": 0.65,
   "watermark_margin_x": 0.05,
   "watermark_margin_y": 0.045,
 

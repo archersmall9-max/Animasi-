@@ -25,6 +25,13 @@ from PIL import Image
 
 from . import __version__
 from .audio import build_audio_chain, measure_loudness
+from .captions import (
+    Caption,
+    caption_overlay_xy,
+    parse_captions,
+    render_caption,
+    validate_captions,
+)
 from .config import EditConfig
 from .ffmpeg_tool import FFmpegError, find_ffmpeg
 from .framing import build_framing, framing_report
@@ -317,6 +324,15 @@ def render(
         if cfg.watermark_text or cfg.watermark_image:
             wm_path = render_watermark(cfg, work / "watermark.png")
 
+        # --- captions --------------------------------------------------------
+        caps = parse_captions(cfg.captions)
+        for note in validate_captions(caps, total_dur):
+            log.warning("%s", note)
+        cap_assets: list[tuple[Caption, Path, int, int]] = []
+        for i, cap in enumerate(caps):
+            cpath, cw, ch = render_caption(cfg, cap, work / f"caption_{i:02d}.png")
+            cap_assets.append((cap, cpath, cw, ch))
+
         # --- assemble the final command --------------------------------------
         args: list[str] = ["-ss", f"{src_start:.3f}", "-t", f"{src_dur:.3f}", "-i", str(src)]
         idx = 1
@@ -329,6 +345,10 @@ def render(
         if wm_path:
             args += ["-i", str(wm_path)]
             input_index["wm"] = idx
+            idx += 1
+        for i, (_cap, cpath, _cw, _ch) in enumerate(cap_assets):
+            args += ["-i", str(cpath)]
+            input_index[f"cap{i}"] = idx
             idx += 1
 
         use_audio = cfg.keep_audio and info.has_audio
@@ -356,6 +376,41 @@ def render(
             video_label = "cat"
         else:
             video_label = "body"
+
+        # Captions first, watermark last, so branding is never covered by copy.
+        # Each caption becomes a full-length stream whose alpha is raised only
+        # inside its own window; a pair of alpha fades does the gating, which
+        # behaves far better than overlay's `enable` when frames are dropped.
+        for i, (cap, _cpath, cw, ch) in enumerate(cap_assets):
+            src_idx = input_index[f"cap{i}"]
+            cx, cy = caption_overlay_xy(cfg, cap, cw, ch)
+            fade = max(0.0, min(cap.fade, cap.duration / 2 - 1e-3))
+            chain = [
+                "format=rgba",
+                "loop=loop=-1:size=1",
+                f"fps={cfg.fps}",
+                f"trim=end={total_dur:.3f}",
+                "setpts=PTS-STARTPTS",
+            ]
+            gate = ""
+            if fade > 0.01:
+                # A pair of alpha fades is its own gate: the stream is fully
+                # transparent before the fade-in and after the fade-out.
+                chain += [
+                    f"fade=t=in:st={cap.start:.3f}:d={fade:.3f}:alpha=1",
+                    f"fade=t=out:st={cap.end - fade:.3f}:d={fade:.3f}:alpha=1",
+                ]
+            else:
+                # Hard cut: let overlay do the gating rather than rewriting
+                # the alpha plane by hand.
+                gate = f":enable='between(t,{cap.start:.3f},{cap.end:.3f})'"
+            nxt = f"capped{i}"
+            graph.append(
+                f"[{src_idx}:v]{','.join(chain)}[capsrc{i}];"
+                f"[{video_label}][capsrc{i}]overlay=x={cx}:y={cy}:"
+                f"format=auto:eof_action=pass{gate}[{nxt}]"
+            )
+            video_label = nxt
 
         if wm_path:
             x, y = overlay_position(cfg)
