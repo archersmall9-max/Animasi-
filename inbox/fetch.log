@@ -1,0 +1,7 @@
+run: 37255182008   2026-10-05T02:23:39Z
+url: https://upload.wikimedia.org/wikipedia/commons/9/9d/Kouichi_Jun%27ichi_-_Namakura_Gatana_%281917%29_-_4-minute_restored_version.webm
+--- diagnostics ---
+=== generic URL (curl) ===
+curl: (22) The requested URL returned error: 404
+FAILED: nothing downloaded
+--- first bytes of the response ---
