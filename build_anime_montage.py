@@ -69,13 +69,23 @@ SHOTS: list[tuple[float, int, float, float, float, str]] = [
     (248.0, 4, 1.20, 0.48, 0.45, "last man standing"),
 ]
 
+# Caption density tracks the cut density. Act 1 is one line every ~3.5 s over
+# shots that last a whole bar; from 14.6 s the montage is cutting once per beat,
+# so the lines get short and turn over with it. One static line sitting across
+# eight one-beat cuts reads as a stall, however good the footage underneath is.
 CAPTIONS = [
-    {"text": "this anime is 109 years old 🎬",          "start": 0.95,  "end": 2.85},
-    {"text": "Japan, 1917. cut from paper by hand",     "start": 3.00,  "end": 6.50},
-    {"text": "a broke samurai buys a cheap sword ⚔",    "start": 6.65,  "end": 10.20},
-    {"text": "it could not cut a single thing 💀",      "start": 10.40, "end": 14.50},
-    {"text": "so the whole street beat him up 😭",      "start": 14.75, "end": 19.50},
-    {"text": "lost for 91 years, found in a junk shop 📦", "start": 20.00, "end": 25.60},
+    {"text": "this anime is 109 years old 🎬",       "start": 0.95,  "end": 2.85},
+    {"text": "Japan, 1917. cut from paper by hand",  "start": 3.00,  "end": 6.50},
+    {"text": "a broke samurai buys a cheap sword ⚔", "start": 6.65,  "end": 10.20},
+    {"text": "it could not cut a single thing 💀",   "start": 10.40, "end": 14.45},
+    # --- the montage goes to one cut per beat here ---
+    {"text": "so he tried it on a stranger",         "start": 14.70, "end": 16.80},
+    {"text": "the stranger fought back 😭",          "start": 16.90, "end": 19.00},
+    {"text": "so did everyone else",                 "start": 19.10, "end": 20.40},
+    # --- pay-off: two bar-long shots, and the closer ---
+    {"text": "lost for 91 years 📦",                 "start": 20.60, "end": 23.00},
+    {"text": "found in a junk shop in 2008",         "start": 23.15, "end": 25.20},
+    {"text": "anime never stopped 🔥",               "start": 25.35, "end": 26.85},
 ]
 
 

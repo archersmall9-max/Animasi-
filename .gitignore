@@ -40,6 +40,16 @@ tmp/
 # Keep folder placeholders only
 !**/.gitkeep
 
+# --- The one exception: deliverables/ --------------------------------------
+# Finished masters that are cleared for redistribution (public-domain or
+# self-shot footage, licence-cleared audio) may be committed here, because the
+# sandbox has no other way to hand a file to the user: uploads.github.com is
+# blocked, so release assets fail, and ignored paths are invisible in the file
+# browser. See deliverables/README.md for the two conditions. Studio footage
+# and commercial tracks still never enter git.
+!deliverables/
+!deliverables/**
+
 # --- Large images / exported frames ---------------------------------------
 frames/
 thumbnails/
