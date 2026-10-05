@@ -1,8 +1,5 @@
-=== generic URL (curl) ===
-downloaded bytes: 136195808
-type: WebM
-8791c43485d6089da9417e7849a363a7c6ded185f6e20744a784be78a1d5af0c  source.webm
---- probe ---
-  Duration: 00:04:18.80, start: 0.000000, bitrate: 4210 kb/s
-  Stream #0:0: Video: vp8, yuv420p(progressive), 1360x1060, SAR 135:136 DAR 135:106, 30 fps, 30 tbr, 1k tbn (default)
-  Stream #0:1: Audio: vorbis, 44100 Hz, stereo, fltp (default)
+run: 37255374061   2026-10-05T02:26:23Z
+url: 
+--- diagnostics ---
+(none captured)
+--- first bytes of the response ---
