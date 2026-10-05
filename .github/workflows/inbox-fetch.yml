@@ -131,8 +131,23 @@ jobs:
               ;;
 
             *)
-              log "=== generic URL (curl) ==="
-              curl -fsSL --retry 3 --max-time 900 -o source.bin "$URL" 2>&1 | tee -a diag.log || true
+              log "=== generic URL: curl, then yt-dlp ==="
+              # Browser-ish headers first: stock-media sites serve 403 to a
+              # bare curl, and the real file is often behind a player rather
+              # than at the URL itself.
+              curl -fsSL --retry 3 --max-time 900 \
+                   -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36" \
+                   -H "Accept: */*" \
+                   -o source.bin "$URL" 2>&1 | tee -a diag.log || true
+
+              if [ ! -s source.bin ] || head -c 512 source.bin | grep -qiE '<!doctype html|<html'; then
+                log "--- curl gave nothing usable, trying yt-dlp ---"
+                rm -f source.bin
+                yt-dlp --no-playlist --no-warnings --newline \
+                       -o 'dl/source.%(ext)s' "$URL" 2>&1 | tee -a diag.log || true
+                BIG=$(find dl -type f -printf '%s\t%p\n' 2>/dev/null | sort -rn | head -1 | cut -f2-)
+                [ -n "${BIG:-}" ] && cp "$BIG" source.bin
+              fi
               ;;
           esac
 
