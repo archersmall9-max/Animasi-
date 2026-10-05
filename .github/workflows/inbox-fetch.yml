@@ -47,7 +47,7 @@ jobs:
       - name: Install fetchers
         run: |
           python -m pip install --upgrade pip --quiet
-          pip install --quiet gdown yt-dlp
+          pip install --quiet gdown "yt-dlp[default,curl-cffi]"
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
           ffmpeg -version | head -1
@@ -143,7 +143,11 @@ jobs:
               if [ ! -s source.bin ] || head -c 512 source.bin | grep -qiE '<!doctype html|<html'; then
                 log "--- curl gave nothing usable, trying yt-dlp ---"
                 rm -f source.bin
+                # Stock-media sites sit behind a Cloudflare bot check, which
+                # answers a plain HTTP client with 403 whatever headers it
+                # sends. curl-cffi replays a real browser's TLS fingerprint.
                 yt-dlp --no-playlist --no-warnings --newline \
+                       --extractor-args "generic:impersonate" \
                        -o 'dl/source.%(ext)s' "$URL" 2>&1 | tee -a diag.log || true
                 BIG=$(find dl -type f -printf '%s\t%p\n' 2>/dev/null | sort -rn | head -1 | cut -f2-)
                 [ -n "${BIG:-}" ] && cp "$BIG" source.bin
