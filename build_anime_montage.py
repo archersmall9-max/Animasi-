@@ -1,6 +1,7 @@
 """Build the Namakura Gatana (1917) AMV-style Short.
 
-Source  : work/anime_proxy.mp4 - public-domain film, pre-cropped to 9:16.
+Source  : work/anime_full.mp4 - public-domain film at its full 1350x1060,
+          so each shot can crop its own 9:16 window and punch in.
 Music   : sources/music_raw.mp3 - "Ishikari Lore", Kevin MacLeod, CC-BY 4.0.
 Grid    : 82.03 BPM, period 0.7314397 s, downbeat at 43.9322 s.
 
@@ -25,7 +26,7 @@ from viralcut.montage import Shot, check_sources, plan_shots, render_montage
 from viralcut.render import render
 
 ROOT = Path(__file__).resolve().parent
-PROXY = ROOT / "work" / "anime_proxy.mp4"
+PROXY = ROOT / "work" / "anime_full.mp4"
 MUSIC = ROOT / "sources" / "music_raw.mp3"
 BODY = ROOT / "work" / "anime" / "montage_body.mp4"
 FINAL = ROOT / "exports" / "NamakuraGatana_Shorts_MASTER.mp4"
@@ -35,29 +36,37 @@ MUSIC_START = 43.9322          # a measured downbeat
 INTRO_BEATS = 1
 OUTRO_BEATS = 1
 
-# (source in-point, beats on screen, label)
-SHOTS: list[tuple[float, int, str]] = [
-    #  --- act 1: the reveal, one bar per shot -------------------------------
-    (8.0,   3, "iris close-up: the ronin and his blade"),
-    (46.0,  4, "the sword shop, banner overhead"),
-    (70.0,  4, "haggling with the merchant"),
-    #  --- act 2: the build, half a bar per shot -----------------------------
-    (100.0, 2, "merchant fetches the box"),
-    (118.0, 2, "out on the night street"),
-    (134.0, 2, "drawing the new sword"),
-    (160.0, 2, "stalking for a victim"),
-    #  --- act 3: rapid fire, one beat per shot ------------------------------
-    (168.0, 1, "sword up"),
-    (178.0, 1, "the willow, first passer-by"),
-    (186.0, 1, "the messenger turns"),
-    (196.0, 1, "blade swung"),
-    (206.0, 1, "it does nothing"),
-    (214.0, 1, "silhouette: the grapple"),
-    (222.0, 1, "silhouette: thrown"),
-    (232.0, 1, "silhouette: down in the grass"),
-    #  --- act 4: the pay-off, one bar per shot ------------------------------
-    (238.0, 4, "silhouette duel under the tree"),
-    (248.0, 4, "last man standing"),
+# (source in-point, beats, zoom, focus_x, focus_y, label)
+#
+# The film only has five locations, so cutting between two shots of the same
+# master at the same framing reads as a glitch rather than as an edit. Every
+# neighbouring pair therefore changes either location or framing scale, and
+# two close-ups of one master are aimed at opposite sides of the frame.
+#
+# focus_x is capped at 0.70: the archive's "NFC" logo sits at the bottom
+# right of the full frame and panning further would bring it into shot.
+SHOTS: list[tuple[float, int, float, float, float, str]] = [
+    #  --- act 1: the reveal -------------------------------------------------
+    (8.0,   3, 1.00, 0.42, 0.50, "iris portrait: the ronin and his blade"),
+    (46.0,  4, 1.00, 0.46, 0.50, "the sword shop, wide"),
+    (78.0,  4, 1.35, 0.62, 0.42, "close: the merchant"),
+    #  --- act 2: the build --------------------------------------------------
+    (100.0, 2, 1.25, 0.30, 0.45, "close: the ronin, other side of frame"),
+    (118.0, 2, 1.00, 0.48, 0.50, "the night street, wide"),
+    (136.0, 2, 1.40, 0.56, 0.40, "close: drawing the sword"),
+    (10.5,  2, 1.20, 0.40, 0.45, "cut back to the portrait"),
+    #  --- act 3: rapid fire, one beat each ----------------------------------
+    (160.0, 1, 1.30, 0.46, 0.45, "stalking, close"),
+    (178.0, 1, 1.00, 0.42, 0.50, "the willow, wide"),
+    (186.0, 1, 1.35, 0.30, 0.48, "close: the passer-by"),
+    (196.0, 1, 1.10, 0.38, 0.50, "the two meet"),
+    (214.0, 1, 1.00, 0.52, 0.50, "silhouette: the duel, wide"),
+    (218.4, 1, 1.25, 0.50, 0.45, "silhouette: close on the blade"),
+    (222.0, 1, 1.00, 0.45, 0.50, "silhouette: wide again"),
+    (232.0, 1, 1.35, 0.52, 0.48, "silhouette: down"),
+    #  --- act 4: the pay-off ------------------------------------------------
+    (241.0, 4, 1.00, 0.45, 0.50, "silhouette duel under the tree"),
+    (248.0, 4, 1.20, 0.48, 0.45, "last man standing"),
 ]
 
 CAPTIONS = [
@@ -79,8 +88,9 @@ def main() -> None:
     outro_d = round(OUTRO_BEATS * beat * FPS) / FPS
 
     shots = [
-        Shot(source=PROXY, start=t, duration=n * beat, label=label)
-        for t, n, label in SHOTS
+        Shot(source=PROXY, start=t, duration=n * beat,
+             zoom=z, focus_x=fx, focus_y=fy, label=label)
+        for t, n, z, fx, fy, label in SHOTS
     ]
     notes = check_sources(shots)
     if notes:
@@ -88,7 +98,7 @@ def main() -> None:
 
     plan = plan_shots(shots, grid, transition_duration=0.10, fps=FPS)
     plan.transition = "fade"
-    total_beats = sum(n for _, n, _ in SHOTS)
+    total_beats = sum(n for _, n, *_ in SHOTS)
     print(f"montage: {len(plan.shots)} shots, {total_beats} beats, {plan.duration:.3f}s")
     print("cuts   :", ", ".join(f"{c:.2f}" for c in plan.cut_times))
 

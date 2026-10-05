@@ -306,3 +306,59 @@ def test_music_config_is_validated():
     cfg.music_start = -1.0
     with pytest.raises(ValueError, match="music_start"):
         cfg.validate()
+
+
+# --- framing --------------------------------------------------------------
+
+def test_shot_rejects_impossible_framing():
+    with pytest.raises(ValueError, match="zoom"):
+        Shot("a.mp4", zoom=0.9)
+    with pytest.raises(ValueError, match="focus_x"):
+        Shot("a.mp4", focus_x=1.4)
+    with pytest.raises(ValueError, match="focus_y"):
+        Shot("a.mp4", focus_y=-0.1)
+
+
+def test_default_framing_still_centres_the_crop():
+    """Punch-in must not shift the framing of montages that never ask for it."""
+    cfg = fast_config()
+    plan = plan_shots([Shot("a.mp4")], grid_at(120.0), fps=30)
+    graph, _ = build_graph(plan, cfg, 30)
+    assert f"scale={cfg.width}:{cfg.height}:" in graph
+    assert f"crop={cfg.width}:{cfg.height}:(in_w-{cfg.width})*0.5000:" in graph
+
+
+def test_punch_in_scales_up_and_slides_the_window():
+    cfg = fast_config()           # 240 x 426
+    plan = plan_shots([Shot("a.mp4", zoom=1.5, focus_x=0.0)], grid_at(120.0), fps=30)
+    graph, _ = build_graph(plan, cfg, 30)
+    assert "scale=360:640:" in graph, graph
+    assert f"crop={cfg.width}:{cfg.height}:(in_w-{cfg.width})*0.0000:" in graph
+
+
+@requires_ffmpeg
+def test_two_framings_of_one_source_differ(landscape_clip, tmp_path):
+    """The point of punch-in: one master has to yield visibly different
+    shots, otherwise consecutive cuts from it read as a glitch rather than
+    as an edit. Both shots sample the *same* source timestamp, so anything
+    that differs between them is framing and nothing else."""
+    cfg = fast_config()
+    shots = [Shot(landscape_clip, zoom=1.0, focus_x=0.5),
+             Shot(landscape_clip, zoom=1.6, focus_x=0.0)]
+    plan = plan_shots(shots, grid_at(120.0), beats_per_shot=2, fps=30)
+    out = render_montage(plan, cfg, tmp_path / "framing.mp4", fps=30)
+
+    def frame(t: float) -> bytes:
+        raw = subprocess.run(
+            [str(find_ffmpeg()), "-hide_banner", "-loglevel", "error",
+             "-i", str(out), "-ss", f"{t}", "-frames:v", "1",
+             "-vf", "format=gray", "-f", "rawvideo", "-"],
+            capture_output=True, check=True).stdout
+        assert raw, f"no frame at {t}"
+        return raw
+
+    # Shots are 1.0 s each, so both of these sample source t = 0.5 s.
+    wide, close = frame(0.5), frame(1.5)
+    assert len(wide) == len(close)
+    diff = sum(abs(a - b) for a, b in zip(wide, close, strict=True)) / len(wide)
+    assert diff > 2.0, f"punch-in produced near-identical framing (diff {diff:.2f})"

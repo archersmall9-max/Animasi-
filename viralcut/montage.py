@@ -63,6 +63,13 @@ class Shot:
     start: float = 0.0              # in-point within the source
     duration: float | None = None   # filled in by :func:`plan_shots`
     label: str = ""
+    # Framing. A montage cut from one film runs out of camera angles fast:
+    # three consecutive shots of the same wide master do not read as cuts,
+    # they read as a glitch. ``zoom`` punches in and ``focus_x``/``focus_y``
+    # slide the window, so one master yields wide / medium / close framings.
+    zoom: float = 1.0               # 1.0 = full frame, 1.4 = 40 % punch-in
+    focus_x: float = 0.5            # 0 = hard left, 1 = hard right
+    focus_y: float = 0.5            # 0 = top, 1 = bottom
 
     def __post_init__(self) -> None:
         self.source = Path(self.source).expanduser()
@@ -70,6 +77,12 @@ class Shot:
             raise ValueError(f"shot start must not be negative: {self.start}")
         if self.duration is not None and self.duration <= 0:
             raise ValueError(f"shot duration must be positive: {self.duration}")
+        if self.zoom < 1.0:
+            raise ValueError(f"shot zoom must be >= 1.0: {self.zoom}")
+        if not 0.0 <= self.focus_x <= 1.0:
+            raise ValueError(f"focus_x must be within 0..1: {self.focus_x}")
+        if not 0.0 <= self.focus_y <= 1.0:
+            raise ValueError(f"focus_y must be within 0..1: {self.focus_y}")
 
 
 @dataclass
@@ -206,10 +219,17 @@ def _shot_chain(index: int, shot: Shot, cfg: EditConfig, fps: int) -> str:
     """
     w, h = cfg.width, cfg.height
     frames = max(1, round((shot.duration or 0.0) * fps))
+    # Cover-scale to the punched-in size, then slide the output window over
+    # it. At zoom 1.0 with a centred focus the crop expression evaluates to
+    # exactly the centre, which is what a bare ``crop=w:h`` already did, so
+    # existing behaviour is unchanged.
+    sw = int(round(w * shot.zoom / 2)) * 2
+    sh = int(round(h * shot.zoom / 2)) * 2
     return (
         f"[{index}:v]"
-        f"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos,"
-        f"crop={w}:{h},format=yuv420p,setsar=1,"
+        f"scale={sw}:{sh}:force_original_aspect_ratio=increase:flags=lanczos,"
+        f"crop={w}:{h}:(in_w-{w})*{shot.focus_x:.4f}:(in_h-{h})*{shot.focus_y:.4f},"
+        f"format=yuv420p,setsar=1,"
         f"setpts=PTS-STARTPTS,fps={fps},"
         f"trim=end_frame={frames},setpts=PTS-STARTPTS,fps={fps}"
         f"[s{index}]"
