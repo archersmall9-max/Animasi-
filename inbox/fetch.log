@@ -1,4 +1,4 @@
-run: 37255680150   2026-10-05T02:31:02Z
+run: 37255748723   2026-10-05T02:32:20Z
 url: https://pixabay.com/music/beats-powerful-percussion-513717/
 --- diagnostics ---
 === generic URL: curl, then yt-dlp ===
@@ -6,6 +6,6 @@ curl: (22) The requested URL returned error: 403
 --- curl gave nothing usable, trying yt-dlp ---
 [generic] Extracting URL: https://pixabay.com/music/beats-powerful-percussion-513717/
 [generic] beats-powerful-percussion-513717: Downloading webpage
-ERROR: [generic] Got HTTP Error 403 caused by Cloudflare anti-bot challenge; see  https://github.com/yt-dlp/yt-dlp#impersonation  for how to install the required impersonation dependency, and try again with  --extractor-args "generic:impersonate"
+ERROR: [generic] beats-powerful-percussion-513717: Unable to download webpage: HTTP Error 403: Forbidden (caused by <HTTPError 403: Forbidden>)
 FAILED: nothing downloaded
 --- first bytes of the response ---
