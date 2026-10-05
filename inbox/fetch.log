@@ -1,9 +1,5 @@
-=== generic URL: curl, then yt-dlp ===
-downloaded bytes: 6688921
-type: Audio file with ID3 version 2.2.0, contains: MPEG ADTS, layer III, v1, 320 kbps, 44.1 kHz, Stereo
-kind: video
-2ae7e32d371f839c507f44397473942a9fbaffcea4c1ac1f94331fdf70a2b581  source.mp3
---- probe ---
-  Duration: 00:02:44.08, start: 0.000000, bitrate: 326 kb/s
-  Stream #0:0: Audio: mp3, 44100 Hz, stereo, fltp, 320 kb/s
-  Stream #0:1: Video: mjpeg (Baseline), yuvj444p(pc, bt470bg/unknown/unknown), 400x400 [SAR 72:72 DAR 1:1], 90k tbr, 90k tbn (attached pic)
+run: 37255910530   2026-10-05T02:34:38Z
+url: 
+--- diagnostics ---
+(none captured)
+--- first bytes of the response ---
