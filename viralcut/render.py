@@ -18,13 +18,13 @@ import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from PIL import Image
 
 from . import __version__
-from .audio import build_audio_chain, measure_loudness
+from .audio import build_audio_chain, build_music_chain, measure_loudness
 from .captions import (
     Caption,
     caption_overlay_xy,
@@ -351,8 +351,16 @@ def render(
             input_index[f"cap{i}"] = idx
             idx += 1
 
+        music_path = Path(cfg.music).expanduser() if cfg.music else None
+        if music_path is not None:
+            if not music_path.exists():
+                raise FileNotFoundError(f"music track not found: {music_path}")
+            args += ["-i", str(music_path)]
+            input_index["music"] = idx
+            idx += 1
+
         use_audio = cfg.keep_audio and info.has_audio
-        if not use_audio and cfg.silent_track_if_missing:
+        if not use_audio and music_path is None and cfg.silent_track_if_missing:
             args += ["-f", "lavfi", "-t", f"{total_dur:.3f}",
                      "-i", "anullsrc=channel_layout=stereo:sample_rate=48000"]
             input_index["silence"] = idx
@@ -425,7 +433,30 @@ def render(
         if use_audio and cfg.loudnorm_passes >= 2:
             log.info("measuring loudness (pass 1/2)...")
             measured = measure_loudness(src, cfg, src_start, src_dur)
-        if use_audio:
+        if music_path is not None:
+            music_measured = None
+            if cfg.loudnorm_passes >= 2:
+                log.info("measuring music loudness...")
+                # speed applies to the picture and the source audio, never to
+                # a track laid underneath it.
+                music_measured = measure_loudness(
+                    music_path, replace(cfg, speed=1.0),
+                    cfg.music_start or None, total_dur,
+                )
+            mchain = build_music_chain(cfg, total_dur, music_measured)
+            mi = input_index["music"]
+            if cfg.music_mode == "mix" and use_audio:
+                achain = build_audio_chain(cfg, measured, body_dur, intro_dur, total_dur)
+                graph.append(f"[0:a]{','.join(achain)},volume={cfg.source_gain:.2f}dB[asrc]")
+                graph.append(f"[{mi}:a]{','.join(mchain)}[amus]")
+                # duration=first keeps the mix the length of the picture; the
+                # looped music would otherwise decide how long the file is.
+                graph.append("[asrc][amus]amix=inputs=2:duration=first:"
+                             "dropout_transition=0:normalize=0[aout]")
+            else:
+                graph.append(f"[{mi}:a]{','.join(mchain)}[aout]")
+            audio_map = "[aout]"
+        elif use_audio:
             achain = build_audio_chain(cfg, measured, body_dur, intro_dur, total_dur)
             graph.append(f"[0:a]{','.join(achain)}[aout]")
             audio_map = "[aout]"

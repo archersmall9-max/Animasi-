@@ -82,6 +82,18 @@ class EditConfig:
     # --- captions -----------------------------------------------------------
     # Off unless a cut explicitly asks for them. Each entry is
     # {"text", "start", "end", "position", "scale", "fade", "align"}.
+    # --- music -----------------------------------------------------------
+    # An external track, mixed in or replacing the source audio entirely.
+    # Off by default: baked-in music is a licensing liability, so it is only
+    # ever there because a job asked for it.
+    music: str = ""
+    music_mode: str = "replace"      # replace | mix
+    music_gain: float = 0.0          # dB applied before normalisation
+    music_start: float = 0.0         # in-point within the track
+    music_fade_in: float = 0.25
+    music_fade_out: float = 0.60
+    source_gain: float = -14.0       # dB for the original audio when mixing
+
     captions: list[dict[str, Any]] = field(default_factory=list)
     caption_size: float = 0.0345      # type height as a fraction of canvas height
     caption_max_width: float = 0.86    # wrap before the block gets this wide
@@ -140,6 +152,10 @@ class EditConfig:
     def validate(self) -> None:
         if self.fill not in FILL_MODES:
             raise ValueError(f"fill must be one of {FILL_MODES}")
+        if self.music_mode not in ("replace", "mix"):
+            raise ValueError("music_mode must be 'replace' or 'mix'")
+        if self.music_start < 0:
+            raise ValueError("music_start must not be negative")
         if self.zoom not in ZOOM_MODES:
             raise ValueError(f"zoom must be one of {ZOOM_MODES}")
         if self.grade not in GRADE_PRESETS:

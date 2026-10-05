@@ -122,3 +122,58 @@ def build_audio_chain(
     chain.append(f"apad=whole_dur={total_duration:.3f}")
     chain.append("aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo")
     return chain
+
+
+def build_music_chain(cfg: EditConfig, total_duration: float,
+                      measured: dict | None = None) -> list[str]:
+    """Filters that turn an external track into the bed for this cut.
+
+    The track is looped rather than allowed to run out. A montage planned
+    against a beat grid is often a little longer than the excerpt that was
+    analysed, and silence at the end of an edit reads as a mistake; a loop
+    at least keeps the rhythm going. ``aloop`` counts in samples, hence the
+    multiplication by the sample rate.
+
+    Normalisation is two-pass when ``measured`` is supplied, and it matters
+    more than it looks. Single-pass ``loudnorm`` is a dynamic normaliser
+    that aims at the target rather than hitting it: on a test render it
+    landed at -18.7 LUFS against a -14 target, nearly 5 dB quiet. Every
+    platform normalises on playback, so a quiet master is not made louder,
+    it simply plays quieter than everything around it.
+    """
+    fade_in = max(0.0, min(cfg.music_fade_in, total_duration / 2))
+    fade_out = max(0.0, min(cfg.music_fade_out, total_duration / 2))
+
+    chain = ["aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo"]
+    if cfg.music_start > 0:
+        chain.append(f"atrim=start={cfg.music_start:.3f}")
+        chain.append("asetpts=PTS-STARTPTS")
+    chain.append(f"aloop=loop=-1:size={int(48000 * 600)}")
+    chain.append(f"atrim=end={total_duration:.3f}")
+    chain.append("asetpts=PTS-STARTPTS")
+    if abs(cfg.music_gain) > 0.01:
+        chain.append(f"volume={cfg.music_gain:.2f}dB")
+    if fade_in > 0:
+        chain.append(f"afade=t=in:st=0:d={fade_in:.3f}")
+    if fade_out > 0:
+        chain.append(f"afade=t=out:st={total_duration - fade_out:.3f}:d={fade_out:.3f}")
+    if measured and not measured.get("silent"):
+        # The gain above is a linear scaling, so the measured figures move
+        # with it exactly - no need to re-measure after applying it.
+        shift = cfg.music_gain
+        chain.append(
+            "loudnorm=I={i}:TP={tp}:LRA=11:measured_I={mi}:measured_TP={mtp}:"
+            "measured_LRA={mlra}:measured_thresh={mth}:offset={off}:"
+            "linear=true:print_format=summary".format(
+                i=cfg.loudness_target, tp=cfg.true_peak,
+                mi=float(measured.get("input_i", -24.0)) + shift,
+                mtp=float(measured.get("input_tp", -6.0)) + shift,
+                mlra=measured.get("input_lra"),
+                mth=float(measured.get("input_thresh", -34.0)) + shift,
+                off=measured.get("target_offset", 0.0),
+            )
+        )
+    else:
+        chain.append(f"loudnorm=I={cfg.loudness_target}:TP={cfg.true_peak}:LRA=11")
+    chain.append("aresample=48000:resampler=soxr:precision=28")
+    return chain

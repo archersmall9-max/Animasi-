@@ -88,6 +88,18 @@ def _add_edit_arguments(p: argparse.ArgumentParser) -> None:
     g.add_argument("--no-captions", action="store_true",
                    help="ignore any captions the config carries")
 
+    g = p.add_argument_group("music")
+    g.add_argument("--music", default=None, metavar="FILE",
+                   help="audio track to lay under the cut")
+    g.add_argument("--music-mode", choices=("replace", "mix"), default=None,
+                   help="replace the source audio (default) or mix under it")
+    g.add_argument("--music-gain", type=float, default=None, metavar="DB",
+                   help="gain on the track before normalisation")
+    g.add_argument("--music-start", type=float, default=None, metavar="SEC",
+                   help="in-point within the track")
+    g.add_argument("--no-music", action="store_true",
+                   help="ignore any music the config carries")
+
     g = p.add_argument_group("audio & encode")
     g.add_argument("--mute", action="store_true", help="drop the source audio (silent track kept)")
     g.add_argument("--loudness-target", type=float, default=None, help="LUFS target (default -14)")
@@ -137,6 +149,12 @@ def _config_from_args(args: argparse.Namespace):
         cfg.captions = data.get("captions", data) if isinstance(data, dict) else data
     if args.no_captions:
         cfg.captions = []
+    for flag in ("music", "music_mode", "music_gain", "music_start"):
+        value = getattr(args, flag, None)
+        if value is not None:
+            setattr(cfg, flag, value)
+    if args.no_music:
+        cfg.music = ""
     if args.no_watermark:
         cfg.watermark_text, cfg.watermark_image = "", None
     if args.mute:

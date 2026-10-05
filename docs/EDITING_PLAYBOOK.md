@@ -153,7 +153,56 @@ flags and skin-tone modifiers fall apart. Verified: 👀 🧡 😐 🍦 💀. Wi
 colour-emoji font installed the emoji is dropped with a warning rather than
 rendered as tofu.
 
-## 9. Encoder settings
+## 9. Montage and music
+
+A montage is assembled by `viralcut/montage.py` into one intermediate video,
+which the normal pipeline then treats as its source. That keeps framing,
+grading, captions, watermark and the intro/outro in one place rather than
+reimplemented twice. It costs one extra encode, so the intermediate is
+written at CRF 10 — far above the delivery bitrate, where the loss is not
+measurable in the final file.
+
+**Cuts land on the beat.** `viralcut/beats.py` returns a beat grid;
+`plan_shots(..., beats_per_shot=N)` gives each shot N beats. Four is one bar,
+two is twice as fast, eight lets a moment breathe.
+
+**Cut points are quantised to whole frames**, and this is not cosmetic.
+ffmpeg rounds each shot's length up to a frame independently, so without it
+the rounding accumulates: four shots at 30 fps drifted 82 ms by the end.
+Quantising the cut times and deriving durations as the gaps between them
+holds the error to half a frame and stops it compounding.
+
+**Hard cuts and cross-fades are built differently.** `xfade` cannot do a
+zero-length transition, so hard cuts — the more common shape — use `concat`
+and skip the overlap arithmetic. A cross-fade needs one extra transition's
+worth of footage from every shot *except the last*, which has nothing to
+blend into; padding that one too runs the montage a transition long.
+
+Two ffmpeg traps are handled in `_shot_chain`. Trimming happens by frame
+count inside the graph, never with `-t` on the input, which cuts at the
+first frame past the limit and rounds up. And `fps=` is reapplied after the
+final `setpts`, because resetting timestamps leaves the stream with no
+declared rate and `xfade` rejects it outright: *"current rate of 1/0 is
+invalid"*.
+
+```bash
+python3 -m viralcut edit MONTAGE.mp4 --music track.mp3 -o OUT.mp4
+```
+
+**Music** is off unless `--music` is given. The track is looped rather than
+allowed to run out, then trimmed, faded and normalised. Normalisation is
+two-pass: single-pass `loudnorm` aims at the target rather than hitting it,
+and landed 4.7 dB quiet on a test render. Since every platform normalises on
+playback, a quiet master is not made louder — it just plays quieter than
+everything around it.
+
+One caveat worth recognising: if a track's true peak is already near the
+ceiling while its integrated loudness is low — sparse percussion with a big
+crest factor — no normaliser can reach −14 LUFS without clipping, and
+`loudnorm` will fall back to dynamic mode and come up short. That is the
+track, not the pipeline.
+
+## 10. Encoder settings
 
 ```
 x264  CRF 18 · preset slow · high profile · level 4.2
@@ -169,11 +218,12 @@ head of the file so upload-side processing starts immediately. The master is
 BT.709-tagged, which stops washed-out or over-saturated colour after
 transcoding.
 
-## 10. What is deliberately absent
+## 11. What is deliberately absent
 
 * **Captions / subtitles** — opt-in per job, see §8.
 * **Voice-over / TTS** — added only on request.
-* **Music and sound effects** — a licensing liability, and platform-native
+* **Music by default** — opt-in per job with `--music`, see §9; a licensing
+  liability otherwise, and platform-native
   audio features (trending sounds added *at upload*) outperform baked-in beds.
 * **Stock transitions and sting templates** — recognisably generic, and most
   "free" packs are not actually licensed for commercial use.
