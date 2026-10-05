@@ -1,0 +1,91 @@
+# Publishing pack — A beat-synced montage cut from Namakura Gatana (なまくら刀, 'The Dull Sword'), the 1917 Japanese animated short by Jun'ichi Kouchi — one of the oldest surviving anime, lost for 91 years and found in an Osaka antique shop in 2008.
+
+A broke ronin buys a cheap sword, discovers it cannot cut anything, and gets thrashed by every passer-by he tries it on. Seventeen shots from the 1917 original are cut to the beat of a koto-and-flute track, ending in the silhouette brawl under the willow tree. The film is hand-cut paper animation, tinted yellow, shot at 16 frames per second — nine years before television existed.
+
+## Research snapshot
+
+- **Primary keyword:** oldest anime
+- **Secondary keywords:** first anime ever made, Namakura Gatana, The Dull Sword 1917, anime history, 1917 anime, oldest surviving Japanese animation, 100 year old anime, anime before computers
+- **Entities:** Namakura Gatana, The Dull Sword, Jun'ichi Kouchi, Senpan Maekawa, Kobayashi Shokai, National Film Center Tokyo, ronin, tsujigiri
+- **Audience:** Anime viewers worldwide who have never seen pre-war Japanese animation, plus film-history and animation-craft audiences. English-speaking US/UK/PH/IN traffic carries most Shorts anime distribution, and 'oldest anime' is an evergreen curiosity query that spikes whenever an anime-history video trends.
+- **Hook:** The first frame is the iris close-up of the ronin's face and blade — a composition that reads instantly as 'anime' — while the caption says the clip is 109 years old. The contradiction between how modern the framing looks and how old the film is, is the whole hook.
+- **Competition:** Most 'oldest anime' Shorts are static talking-head explainers or slideshow recaps over stock music, and anime-edit channels avoid pre-war material entirely because it is unfamiliar. Almost nobody cuts the 1917 footage itself as a montage.
+- **Gap:** Treating a 1917 public-domain film with the full modern AMV grammar — beat-synced cuts, accelerating cut rhythm, cross-dissolves, captions — is the thing nobody does. It is also completely claim-free, which is why the montage can be cut to music at all.
+
+## Youtube
+
+**Title options**
+
+1. `This anime is 109 years old (1917)`  _(34 chars) ← primary_
+
+**Description**
+
+```text
+Namakura Gatana (なまくら刀, 'The Dull Sword') was made in 1917 by Jun'ichi Kouchi and Senpan Maekawa for Kobayashi Shokai — hand-cut paper animation, 16 frames per second, nine years before television existed. No cels, no computers, no sound.
+
+Film: Namakura Gatana (1917), Jun'ichi Kouchi — public domain, restored by the National Film Center, National Museum of Modern Art, Tokyo. Music: "Ishikari Lore" by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 — http://creativecommons.org/licenses/by/4.0/
+
+The story is a joke that still lands: a broke ronin buys a cheap sword, discovers it cannot cut anything, and gets thrashed by every passer-by he tries it on. It ends in a silhouette brawl under a willow tree.
+
+The film was lost for 91 years. A print was found by an antique shop employee in Osaka in March 2008, and the National Museum of Modern Art's Film Center in Tokyo released a digitally restored version in 2014. It is one of the oldest surviving Japanese animated films, and it is in the public domain.
+
+Which modern anime do you think owes the most to this one?
+
+#anime #animehistory #shorts #namakuragatana #silentfilm
+```
+
+**Hashtags (5):** #anime #animehistory #shorts #namakuragatana #silentfilm
+
+**Tags (256/500 chars):**
+
+```text
+oldest anime, first anime, Namakura Gatana, The Dull Sword, anime history, 1917 anime, Junichi Kouchi, Japanese animation history, oldest surviving anime, public domain anime, silent film animation, anime before computers, 100 year old anime, vintage anime
+```
+
+## Tiktok
+
+**Title options**
+
+1. `anime in 1917 went crazy`  _(24 chars) ← primary_
+
+**Description**
+
+```text
+Made in 1917. Hand-cut paper, 16 frames per second, no computers. A broke ronin buys a cheap sword and it cannot cut a thing. Lost for 91 years, found in an Osaka antique shop in 2008.
+
+Film: Namakura Gatana (1917), Jun'ichi Kouchi — public domain, restored by the National Film Center, National Museum of Modern Art, Tokyo. Music: "Ishikari Lore" by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 — http://creativecommons.org/licenses/by/4.0/
+
+Which modern anime do you think owes the most to this one?
+
+#anime #animehistory #shorts #namakuragatana #silentfilm
+```
+
+**Hashtags (5):** #anime #animehistory #shorts #namakuragatana #silentfilm
+
+## Instagram
+
+**Title options**
+
+1. `The oldest anime ever found — 1917`  _(34 chars) ← primary_
+
+**Description**
+
+```text
+Namakura Gatana, 1917. Hand-cut paper animation by Jun'ichi Kouchi — a ronin buys a dull sword and gets beaten up by everyone he swings it at. Lost for 91 years, found in an Osaka antique shop in 2008, restored in Tokyo in 2014. One of the oldest surviving anime.
+
+Film: Namakura Gatana (1917), Jun'ichi Kouchi — public domain, restored by the National Film Center, National Museum of Modern Art, Tokyo. Music: "Ishikari Lore" by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 — http://creativecommons.org/licenses/by/4.0/
+
+Which modern anime do you think owes the most to this one?
+
+#anime #animehistory #shorts #namakuragatana #silentfilm #animation
+```
+
+**Hashtags (6):** #anime #animehistory #shorts #namakuragatana #silentfilm #animation
+
+## Sources consulted
+
+- https://en.wikipedia.org/wiki/The_Dull_Sword
+- https://commons.wikimedia.org/wiki/Category:Namakura_Gatana_(1917_film)
+- https://www.animenewsnetwork.com/encyclopedia/anime.php?id=5358
+- https://eac.libguides.com/c.php?g=723550&p=5215189
+- https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100192

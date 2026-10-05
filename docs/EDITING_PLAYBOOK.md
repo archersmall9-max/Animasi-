@@ -153,6 +153,20 @@ flags and skin-tone modifiers fall apart. Verified: 👀 🧡 😐 🍦 💀. Wi
 colour-emoji font installed the emoji is dropped with a warning rather than
 rendered as tofu.
 
+The font is not in this repository and is not installed by the distro. To
+restore it (the only reachable source — font CDNs are blocked, `github.com`
+is not):
+
+```sh
+git clone --depth 1 --filter=blob:none --sparse \
+    https://github.com/googlefonts/noto-emoji.git /tmp/noto-emoji
+git -C /tmp/noto-emoji sparse-checkout set 2D/fonts
+mkdir -p ~/fonts && cp /tmp/noto-emoji/2D/fonts/NotoColorEmoji.ttf ~/fonts/
+```
+
+Take `2D/fonts/NotoColorEmoji.ttf`, not `Noto-COLRv1.ttf` — the COLRv1 build
+renders nothing under Pillow 12.3 / FreeType 2.14.3.
+
 ## 9. Montage and music
 
 A montage is assembled by `viralcut/montage.py` into one intermediate video,
