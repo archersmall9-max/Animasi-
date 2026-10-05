@@ -3,6 +3,14 @@
 Everything below is copy-paste ready. Nothing here needs editing except where
 marked.
 
+> **On-screen captions.** The cut now carries five timed comment captions
+> (`captions/orange-earless-cat.json`). Beyond the joke, they are the part of
+> this upload that is yours: YouTube's October 2026 guidance reduces reach for
+> clips re-uploaded "without adding anything of your own", and names
+> commentary as something that counts, while bare technical edits do not.
+> The captions tell Orange's story — the tumour, the hearing — rather than
+> narrating what is already visible.
+
 ---
 
 ## 1. Which file
@@ -18,6 +26,10 @@ pre-cleared, and the Shorts feed favours it.
 
 `CatIceCream_Shorts_MASTER.mp4` keeps the original music. Use it only if you
 know the track is cleared.
+
+Both files carry five burned-in comment captions. Leave YouTube's own
+auto-subtitles **off** in the Shorts editor — doubling them up would cover
+the cat.
 
 ---
 
@@ -79,11 +91,10 @@ cat with no ears, earless cat, orange cat, cat tries ice cream, earless hachimi,
 Credit where it's due: this is Orange, filmed by @earlesspotato on Instagram and TikTok. His ears were removed after an ear tumour and he hears perfectly fine. Go follow the original account.
 ```
 
-A pinned comment is the strongest credit placement available without putting
-text on the video itself. It sits at the top of the comment section, it is the
-first thing anyone looking for the source will see, and it is what a rights
-holder checks before deciding whether to file a complaint rather than send a
-message.
+A pinned comment is the strongest credit placement available. It sits at the
+top of the comment section, it is the first thing anyone looking for the
+source will see, and it is what a rights holder checks before deciding
+whether to file a complaint rather than send a message.
 
 ---
 
