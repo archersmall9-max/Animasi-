@@ -40,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --quiet --upgrade pip
-          python -m pip install --quiet pillow imageio-ffmpeg
+          python -m pip install --quiet pillow numpy imageio-ffmpeg
           FF="$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')"
           echo "VIRALCUT_FFMPEG=$FF" >> "$GITHUB_ENV"
           "$FF" -version | head -1

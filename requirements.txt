@@ -1,5 +1,6 @@
 # Core runtime dependencies
-Pillow>=10.0.0          # watermark + intro/outro plate rendering
+Pillow>=10.0.0          # watermark, caption and intro/outro plate rendering
+numpy>=1.24            # beat tracking (viralcut/beats.py)
 
 # Optional, but recommended:
 #   imageio-ffmpeg       -> ships a portable FFmpeg build when none is installed
