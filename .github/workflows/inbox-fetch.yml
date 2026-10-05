@@ -152,18 +152,32 @@ jobs:
             exit 1
           fi
 
-          if ! ffprobe -v error -show_entries stream=codec_type -of csv=p=0 source.bin | grep -q video; then
-            log "FAILED: no video stream"
+          # Video or audio: an edit needs both a picture source and a music
+          # bed, and the music arrives through exactly the same hole in the
+          # network as the footage does.
+          STREAMS="$(ffprobe -v error -show_entries stream=codec_type -of csv=p=0 source.bin)"
+          if echo "$STREAMS" | grep -q video; then
+            KIND=video
+          elif echo "$STREAMS" | grep -q audio; then
+            KIND=audio
+          else
+            log "FAILED: no video or audio stream"
             ffprobe -hide_banner source.bin 2>&1 | head -20 | tee -a diag.log
-            echo "::error::The downloaded file contains no video stream."
+            echo "::error::The downloaded file contains no video or audio stream."
             exit 1
           fi
+          log "kind: $KIND"
 
           EXT=mp4
           case "$(file -b --mime-type source.bin)" in
             video/quicktime) EXT=mov ;;
             video/x-matroska) EXT=mkv ;;
             video/webm) EXT=webm ;;
+            audio/mpeg) EXT=mp3 ;;
+            audio/x-wav|audio/wav) EXT=wav ;;
+            audio/flac|audio/x-flac) EXT=flac ;;
+            audio/ogg|application/ogg) EXT=ogg ;;
+            audio/mp4|audio/x-m4a) EXT=m4a ;;
           esac
           mv source.bin "source.$EXT"
           echo "ext=$EXT" >> "$GITHUB_OUTPUT"
